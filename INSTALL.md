@@ -1,6 +1,6 @@
 # Lattice — Installation Guide
 
-Lattice is a visual intelligence tool for Databricks workspaces. It maps all your Unity Catalog assets, compute resources, jobs, dashboards, and apps into a navigable knowledge graph.
+Lattice is an ontology and visual intelligence platform for Databricks workspaces. It builds a live ontology of your environment — mapping all Unity Catalog assets, compute resources, jobs, dashboards, and apps as typed entities with semantic relationships into a navigable knowledge graph.
 
 ---
 

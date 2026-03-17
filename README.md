@@ -26,9 +26,9 @@
 
 # Lattice
 
-**Visual intelligence platform for Databricks workspaces.**
+**Ontology and visual intelligence platform for Databricks workspaces.**
 
-Lattice maps all Unity Catalog assets, compute resources, jobs, dashboards, apps, and connected systems into an interactive knowledge graph. Built for data teams and AI agents alike.
+Lattice builds a live ontology of your Databricks environment — every Unity Catalog asset, compute resource, job, dashboard, app, and connected system mapped as typed entities with semantic relationships, enriched with operational intelligence from system tables. Built for data teams and AI agents alike.
 
 ![Stack](https://img.shields.io/badge/React-19-blue) ![Stack](https://img.shields.io/badge/FastAPI-0.115-green) ![Stack](https://img.shields.io/badge/NetworkX-3.x-orange) ![Stack](https://img.shields.io/badge/Databricks_SDK-0.40+-red)
 
@@ -115,13 +115,14 @@ Lattice maps all Unity Catalog assets, compute resources, jobs, dashboards, apps
 
 ## What It Does
 
-- **Discovers** every asset in your workspace — catalogs, schemas, tables, views, models, volumes, warehouses, clusters, jobs, dashboards, apps, pipelines, Delta Shares, foreign catalogs, and Lakebase databases
-- **Connects** them into a knowledge graph with structural, compute, lineage, and federation edges
+- **Models** your workspace as a live ontology — typed entities (19 node types) with semantic relationships (10+ edge types), forming a complete platform knowledge graph
+- **Discovers** every asset — catalogs, schemas, tables, views, models, volumes, warehouses, clusters, jobs, dashboards, apps, pipelines, Delta Shares, foreign catalogs, and Lakebase databases
+- **Connects** them with structural, compute, lineage, and federation edges that carry meaning (contains, runsOn, queries, feedsInto, writesTo, readsFrom)
 - **Enriches** with system table data — DBU spend, query frequency, heat (last-accessed age), job success rates, storage size
-- **Visualizes** the graph on an interactive canvas with multiple layout modes, search, filters, and drill-down
+- **Visualizes** the ontology on an interactive canvas with multiple layout modes, search, filters, and drill-down
 - **Analyzes** cost attribution, impact/blast radius, orphaned assets, and column-level lineage
 - **Annotates** with persistent tags and notes backed by a Delta table
-- **Exports** as JSON or JSON-LD for downstream consumption by AI agents
+- **Exports** as JSON or JSON-LD (semantic web vocabulary) for downstream consumption by AI agents
 
 ---
 
@@ -407,7 +408,7 @@ After first launch, configure catalog scope, limits, and warehouse in **Settings
 | 3 | Security hardening + ingestion stability | Done |
 | 4 | Intelligence: health, impact analysis, column lineage, JSON-LD | Done |
 | 5 | First-run wizard, permissions checker, settings, bundle packaging | Done |
-| 6 | Edit mode: write-back to UC (owner, description, tags), draft/publish, diff view | Planned |
+| 6 | Ontology writeback: edit owner, description, tags inline → write back to UC. Draft/publish workflow with diff view. Closes the loop from read-only ontology to actionable platform management | Planned |
 | 7 | MCP server: expose graph as Claude tool (search, lineage, impact, orphans) | Planned |
 | 8 | Multi-workspace, RBAC, upgrade path, telemetry | Planned |
 | 10 | Annotation & Bookmarking: tags, notes, canvas dots, tag filter, multi-select, UC sync | Designed |
