@@ -72,9 +72,13 @@ Lattice maps all Unity Catalog assets, compute resources, jobs, dashboards, apps
 ![Impact Analysis](docs/screenshots/10-impact-analysis.png)
 *Select any asset and click "Analyze" to see its blast radius — which schemas, apps, dashboards, and jobs depend on it. Essential before making breaking changes.*
 
-### Exploring Neighbors — Focus View
-![Focus Neighbors](docs/screenshots/11-focus-neighbors.png)
-*Click "Focus" on a selected node to see a radial layout of its direct connections — parent schemas, sibling tables, consuming jobs, and dashboards.*
+### Exploring Connections — Focus View
+![Focus View](docs/screenshots/11-focus-neighbors.png)
+*Select any asset and click "Focus" to isolate it and its direct connections on the canvas — parent schema above, sibling tables below, all linked by relationship edges. Ideal for understanding what an asset connects to without the noise of the full graph.*
+
+### Save View — Export PNG & JSON Snapshots
+![Save View](docs/screenshots/15-save-view.png)
+*Click "Save View" to freeze the current canvas into a side-by-side comparison pane. Export as high-resolution PNG (4x) for presentations or JSON for programmatic analysis. Compare before/after views of your architecture.*
 
 ### Detecting Orphaned Assets — Health Panel
 ![Health Panel](docs/screenshots/09-health-orphans.png)
