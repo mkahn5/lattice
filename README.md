@@ -100,9 +100,16 @@ Lattice maps all Unity Catalog assets, compute resources, jobs, dashboards, apps
 ![Activity Timeline](docs/screenshots/16-activity-timeline-7d.png)
 *Use the activity timeline filter (7d, 30d, 90d, 1y) to highlight recently active assets and dim inactive ones. A notification above the canvas confirms the filter is active. Dimmed nodes with dashed borders have had zero activity in the selected window — ideal for identifying stale tables, unused schemas, and candidates for cleanup.*
 
-### Data Governance — Ownership & Orphan Detection
+### Data Governance — Ownership, Lineage & Compliance
 ![Data Governance](docs/screenshots/17-data-governance.png)
-*Click any orphaned asset from the Health panel to inspect its ownership, creation date, row count, and schema lineage. Lattice surfaces assets with no owner, stale tables with zero queries, and helps data teams enforce governance policies by making ownership gaps visible across the entire catalog.*
+*Lattice provides a comprehensive governance toolkit for data architects and platform teams:*
+
+- **Orphan detection** — The Health panel identifies cold tables (zero queries in 30 days) and active assets with no owner, exportable to CSV for audit workflows
+- **Built-in governance tags** — Tag any asset as `pii`, `critical`, `deprecated`, `needs-migration`, `under-review`, or `verified` with color-coded visual indicators on the canvas. Bulk-tag multiple assets at once for large-scale classification
+- **Table + column lineage** — Lineage edges from `system.access.table_lineage` and `system.access.column_lineage` show data flow between tables, jobs, and dashboards. Column-level detail traces individual fields across transformations
+- **Impact analysis** — Select any asset and click "Analyze" to see its full blast radius — every downstream schema, table, job, and dashboard that depends on it. Essential before making breaking changes
+- **Activity heat classification** — Every table is classified as hot (queried in 7d), warm (7–30d), or cold (30d+) based on `system.query.history`, with heat dots visible directly on the canvas
+- **Cost-aware governance** — Per-asset DBU attribution traces compute spend from warehouses and jobs through lineage to the tables and schemas that drive it, helping teams prioritize optimization and decommissioning decisions
 
 ---
 
