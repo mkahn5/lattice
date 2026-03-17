@@ -88,6 +88,14 @@ Lattice maps all Unity Catalog assets, compute resources, jobs, dashboards, apps
 ![Cost Detail](docs/screenshots/12-cost-overlay.png)
 *With cost overlay enabled, every node shows its attributed DBU spend. The detail panel breaks down cost sources — which warehouses and jobs drive spend for a given table.*
 
+### Activity Timeline — Identifying Inactive Resources
+![Activity Timeline](docs/screenshots/16-activity-timeline-7d.png)
+*Use the activity timeline filter (7d, 30d, 90d, 1y) to highlight recently active assets and dim inactive ones. The green banner confirms the filter is active. Dimmed nodes with dashed borders have had zero activity in the selected window — ideal for identifying stale tables, unused schemas, and candidates for cleanup.*
+
+### Data Governance — Ownership & Orphan Detection
+![Data Governance](docs/screenshots/17-data-governance.png)
+*Click any orphaned asset from the Health panel to inspect its ownership, creation date, row count, and schema lineage. Lattice surfaces assets with no owner, stale tables with zero queries, and helps data teams enforce governance policies by making ownership gaps visible across the entire catalog.*
+
 ---
 
 ## What It Does
