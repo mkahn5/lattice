@@ -98,7 +98,7 @@ Lattice maps all Unity Catalog assets, compute resources, jobs, dashboards, apps
 
 ### Activity Timeline — Identifying Inactive Resources
 ![Activity Timeline](docs/screenshots/16-activity-timeline-7d.png)
-*Use the activity timeline filter (7d, 30d, 90d, 1y) to highlight recently active assets and dim inactive ones. The green banner confirms the filter is active. Dimmed nodes with dashed borders have had zero activity in the selected window — ideal for identifying stale tables, unused schemas, and candidates for cleanup.*
+*Use the activity timeline filter (7d, 30d, 90d, 1y) to highlight recently active assets and dim inactive ones. A notification above the canvas confirms the filter is active. Dimmed nodes with dashed borders have had zero activity in the selected window — ideal for identifying stale tables, unused schemas, and candidates for cleanup.*
 
 ### Data Governance — Ownership & Orphan Detection
 ![Data Governance](docs/screenshots/17-data-governance.png)
