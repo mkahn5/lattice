@@ -1,0 +1,13 @@
+bundle:
+  name: lattice
+
+resources:
+  apps:
+    lattice:
+      name: "lattice"
+      description: "Lattice — Databricks workspace visualization and intelligence"
+      source_code_path: .
+
+targets:
+  dev:
+    default: true

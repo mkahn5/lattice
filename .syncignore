@@ -1,0 +1,9 @@
+.venv
+node_modules
+__pycache__
+*.pyc
+.DS_Store
+.env
+.cache
+# User config — must not be overwritten by re-deploy
+lattice_config.json

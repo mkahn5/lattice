@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+node_modules/
+npm-debug.log*
+.idea/
+.vscode/
+*.swp
+.databricks/
+.DS_Store
+.cache/
+lattice_config.json
+frontend/dist/
