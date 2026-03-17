@@ -32,8 +32,6 @@ Lattice maps all Unity Catalog assets, compute resources, jobs, dashboards, apps
 
 ![Stack](https://img.shields.io/badge/React-19-blue) ![Stack](https://img.shields.io/badge/FastAPI-0.115-green) ![Stack](https://img.shields.io/badge/NetworkX-3.x-orange) ![Stack](https://img.shields.io/badge/Databricks_SDK-0.40+-red)
 
-**Created by** Mike Kahn — [mike.kahn@databricks.com](mailto:mike.kahn@databricks.com)
-
 ---
 
 ## Screenshots
@@ -75,12 +73,20 @@ Lattice maps all Unity Catalog assets, compute resources, jobs, dashboards, apps
 *Select any asset and click "Analyze" to see its blast radius — which schemas, apps, dashboards, and jobs depend on it. Essential before making breaking changes.*
 
 ### Exploring Connections — Focus View
-![Focus View](docs/screenshots/11-focus-neighbors.png)
-*Select any asset and click "Focus" to isolate it and its direct connections on the canvas — parent schema above, sibling tables below, all linked by relationship edges. Ideal for understanding what an asset connects to without the noise of the full graph.*
+![Focus View](docs/screenshots/03-focus-view.png)
+*Pull any asset out of the lane view and click "Focus" to arrange its connections — callers above, targets below. Here a single schema's 39 dependencies are isolated for analysis while the full 3,630-asset lane layout stays visible for context.*
 
-### Save View — Export PNG & JSON Snapshots
+### Filtering by Asset Type — Targeted Analysis
+![Type Filter](docs/screenshots/04-type-filter.png)
+*Toggle asset types in the sidebar to isolate specific categories. Here only Apps (300) and Databases (21) are active — 321 nodes out of 3,630 — revealing the "uses" relationships between deployed applications and their backing databases.*
+
+### Multi-Workspace & Catalog Switcher
+![Workspace Switcher](docs/screenshots/05-workspace-catalog-switcher.png)
+*Switch between workspace profiles to analyze different environments (dev, staging, prod) without restarting. The catalog selector below lets you scope the graph to specific catalogs — with live search across 200+ catalogs including foreign and Delta Sharing sources.*
+
+### Save View — Export PNG, JSON & CSV
 ![Save View](docs/screenshots/15-save-view.png)
-*Click "Save View" to freeze the current canvas into a side-by-side comparison pane. Export as high-resolution PNG (4x) for presentations or JSON for programmatic analysis. Compare before/after views of your architecture.*
+*Click "Save View" to freeze the current canvas into a side-by-side comparison pane. Export as high-resolution PNG (4x) for presentations, JSON for programmatic analysis, or CSV for a tabular export of all filtered assets — ready for spreadsheet analysis, stakeholder reviews, and cross-team collaboration.*
 
 ### Detecting Orphaned Assets — Health Panel
 ![Health Panel](docs/screenshots/09-health-orphans.png)
