@@ -34,6 +34,34 @@ Lattice maps all Unity Catalog assets, compute resources, jobs, dashboards, apps
 
 ---
 
+## Screenshots
+
+### Main Canvas — Full Graph View
+![Main Canvas](docs/screenshots/01-main-canvas.png)
+*3,630 assets mapped across 19 node types with activity timeline, health panel, and type filters.*
+
+### Detail Panel — Asset Intelligence
+![Detail Panel](docs/screenshots/02-detail-panel.png)
+*Select any node to see properties, connections, cost attribution, and impact analysis.*
+
+### Settings — Catalog Scope & System Access
+![Settings](docs/screenshots/04-settings.png)
+*Configure catalog scope, scale limits, and view system access pre-flight checks.*
+
+### Swimlane Layout — Grouped by Type
+![Swimlane](docs/screenshots/05-swimlane.png)
+*Swimlane layout groups UC data assets, compute resources, and apps into horizontal lanes.*
+
+### Compute View — Apps, Warehouses & Clusters
+![Compute View](docs/screenshots/06-compute-view.png)
+*Compute view shows Databricks Apps, SQL Warehouses, Serverless compute, and their relationships.*
+
+### UC Tree — Catalog Hierarchy
+![UC Tree](docs/screenshots/08-uc-tree.png)
+*UC Tree view shows the Catalog → Schema → Table hierarchy with heat dots and ownership.*
+
+---
+
 ## What It Does
 
 - **Discovers** every asset in your workspace — catalogs, schemas, tables, views, models, volumes, warehouses, clusters, jobs, dashboards, apps, pipelines, Delta Shares, foreign catalogs, and Lakebase databases
