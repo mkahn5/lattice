@@ -32,6 +32,8 @@ Lattice maps all Unity Catalog assets, compute resources, jobs, dashboards, apps
 
 ![Stack](https://img.shields.io/badge/React-19-blue) ![Stack](https://img.shields.io/badge/FastAPI-0.115-green) ![Stack](https://img.shields.io/badge/NetworkX-3.x-orange) ![Stack](https://img.shields.io/badge/Databricks_SDK-0.40+-red)
 
+**Created by** Mike Kahn — [mike.kahn@databricks.com](mailto:mike.kahn@databricks.com)
+
 ---
 
 ## Screenshots
