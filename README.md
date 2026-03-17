@@ -62,6 +62,30 @@ Lattice maps all Unity Catalog assets, compute resources, jobs, dashboards, apps
 
 ---
 
+## Use Cases
+
+### Identifying Costs — Warehouse DBU Heatmap
+![Cost Overlay](docs/screenshots/14-compute-cost.png)
+*Enable the cost overlay to see a heatmap of DBU spend across warehouses and compute. Darker orange = higher 30-day spend. Click any warehouse to see its cost attribution breakdown in the detail panel.*
+
+### Finding Dependencies — Impact Analysis
+![Impact Analysis](docs/screenshots/10-impact-analysis.png)
+*Select any asset and click "Analyze" to see its blast radius — which schemas, apps, dashboards, and jobs depend on it. Essential before making breaking changes.*
+
+### Exploring Neighbors — Focus View
+![Focus Neighbors](docs/screenshots/11-focus-neighbors.png)
+*Click "Focus" on a selected node to see a radial layout of its direct connections — parent schemas, sibling tables, consuming jobs, and dashboards.*
+
+### Detecting Orphaned Assets — Health Panel
+![Health Panel](docs/screenshots/09-health-orphans.png)
+*The Health panel surfaces orphaned tables (zero queries in 30 days) and active assets with no owner. Click any item to navigate directly to it on the canvas.*
+
+### Cost Attribution — Per-Asset Spend
+![Cost Detail](docs/screenshots/12-cost-overlay.png)
+*With cost overlay enabled, every node shows its attributed DBU spend. The detail panel breaks down cost sources — which warehouses and jobs drive spend for a given table.*
+
+---
+
 ## What It Does
 
 - **Discovers** every asset in your workspace — catalogs, schemas, tables, views, models, volumes, warehouses, clusters, jobs, dashboards, apps, pipelines, Delta Shares, foreign catalogs, and Lakebase databases
