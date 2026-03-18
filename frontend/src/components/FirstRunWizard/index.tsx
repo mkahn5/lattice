@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useGraphStore, type PreflightCheck } from '../../stores/graphStore'
-import { CheckCircle, XCircle, Loader, Copy, Check, ExternalLink } from 'lucide-react'
+import { CheckCircle, XCircle, Loader, Copy, Check, ExternalLink, Plus, FlaskConical, Trash2, Globe } from 'lucide-react'
 
 function useVersionInfo() {
   const [info, setInfo] = useState<{ current: string; latest: string | null; update_available: boolean } | null>(null)
@@ -10,7 +10,7 @@ function useVersionInfo() {
   return info
 }
 
-const STEPS = ['Welcome', 'Catalog scope', 'System access']
+const STEPS = ['Welcome', 'Catalog scope', 'Workspaces', 'System access']
 
 // Catalog scope presets
 const PRESETS = [
@@ -162,6 +162,20 @@ export function FirstRunWizard() {
   const [saving, setSaving] = useState(false)
   const statusPolledRef = useRef(false)
 
+  // Workspace profiles state
+  interface WizardProfile { name: string; host: string; active: boolean; source: string }
+  const [profiles, setProfiles] = useState<WizardProfile[]>([])
+  const [addingProfile, setAddingProfile] = useState(false)
+  const [profileForm, setProfileForm] = useState({ name: '', host: '', token: '' })
+  const [profileTestResult, setProfileTestResult] = useState<{ ok: boolean; user?: string; error?: string } | null>(null)
+  const [profileTesting, setProfileTesting] = useState(false)
+  const [profileSaving, setProfileSaving] = useState(false)
+  const [profileSaveError, setProfileSaveError] = useState<string | null>(null)
+
+  const loadProfiles = () => {
+    fetch('/api/profiles').then(r => r.json()).then(d => setProfiles(d.profiles ?? [])).catch(() => {})
+  }
+
   // Fetch available catalogs for step 2
   useEffect(() => {
     if (step === 1 && allCatalogs.length === 0) {
@@ -174,6 +188,11 @@ export function FirstRunWizard() {
     }
   }, [step])
 
+  // Load profiles when reaching workspaces step
+  useEffect(() => {
+    if (step === 2) loadProfiles()
+  }, [step])
+
   // Kick off pre-flight status fetch as soon as wizard opens (so it's ready by step 3)
   useEffect(() => {
     if (!statusPolledRef.current) {
@@ -184,7 +203,7 @@ export function FirstRunWizard() {
 
   // Poll status every 2s while checks are still running
   useEffect(() => {
-    if (step < 2) return
+    if (step < 3) return
     if (appStatus?.ready) return
     const t = setTimeout(() => fetchStatus(), 2000)
     return () => clearTimeout(t)
@@ -354,8 +373,120 @@ export function FirstRunWizard() {
             </div>
           )}
 
-          {/* ── Step 2: System access ── */}
+          {/* ── Step 2: Workspaces ── */}
           {step === 2 && (
+            <div>
+              <h2 className="text-base font-bold text-gray-900 mb-1">Additional workspaces</h2>
+              <p className="text-sm text-gray-500 mb-4 leading-relaxed">
+                Lattice is connected to your current workspace. Add other workspaces here to switch between them — useful for comparing dev, staging, and production environments.
+              </p>
+
+              <div className="space-y-2 mb-4">
+                {profiles.map(p => (
+                  <div key={p.name} className={`flex items-center gap-2 px-3 py-2.5 rounded-lg border ${p.active ? 'border-indigo-200 bg-indigo-50/50' : 'border-gray-100 bg-gray-50/30'}`}>
+                    <Globe size={12} className={`shrink-0 ${p.active ? 'text-indigo-500' : 'text-gray-400'}`} />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <span className={`text-[12px] font-medium ${p.active ? 'text-indigo-700' : 'text-gray-700'}`}>{p.name}</span>
+                        {p.active && <span className="text-[9px] bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded font-medium">ACTIVE</span>}
+                        <span className={`text-[9px] px-1 py-0.5 rounded ${p.source === 'lattice' ? 'bg-amber-50 text-amber-600' : p.source === 'app' ? 'bg-green-50 text-green-600' : 'bg-gray-100 text-gray-400'}`}>
+                          {p.source === 'lattice' ? 'PAT' : p.source === 'app' ? 'APP' : p.source === 'env' ? 'ENV' : 'CLI'}
+                        </span>
+                      </div>
+                      <div className="text-[10px] text-gray-400 truncate">{p.host}</div>
+                    </div>
+                    {p.source === 'lattice' && (
+                      <button
+                        onClick={async () => {
+                          await fetch(`/api/profiles/${encodeURIComponent(p.name)}`, { method: 'DELETE' })
+                          loadProfiles()
+                        }}
+                        className="p-1 text-gray-400 hover:text-red-500 rounded hover:bg-red-50 transition-all"
+                        title="Remove"
+                      >
+                        <Trash2 size={11} />
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {addingProfile ? (
+                <div className="border border-indigo-200 bg-indigo-50/30 rounded-lg p-3 space-y-2.5">
+                  <div>
+                    <label className="text-[11px] text-gray-500 block mb-0.5">Profile name</label>
+                    <input type="text" value={profileForm.name} onChange={e => setProfileForm({ ...profileForm, name: e.target.value })} placeholder="production" className="w-full border border-gray-200 rounded px-2.5 py-1.5 text-[12px] focus:outline-none focus:ring-1 focus:ring-indigo-400" />
+                  </div>
+                  <div>
+                    <label className="text-[11px] text-gray-500 block mb-0.5">Host URL</label>
+                    <input type="text" value={profileForm.host} onChange={e => setProfileForm({ ...profileForm, host: e.target.value })} placeholder="https://my-workspace.cloud.databricks.com" className="w-full border border-gray-200 rounded px-2.5 py-1.5 text-[12px] font-mono focus:outline-none focus:ring-1 focus:ring-indigo-400" />
+                  </div>
+                  <div>
+                    <label className="text-[11px] text-gray-500 block mb-0.5">Personal Access Token</label>
+                    <input type="password" value={profileForm.token} onChange={e => setProfileForm({ ...profileForm, token: e.target.value })} placeholder="dapi..." className="w-full border border-gray-200 rounded px-2.5 py-1.5 text-[12px] font-mono focus:outline-none focus:ring-1 focus:ring-indigo-400" />
+                  </div>
+                  <div className="flex items-center justify-between pt-1">
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={async () => {
+                          setProfileTesting(true); setProfileTestResult(null)
+                          try {
+                            const r = await fetch('/api/profiles/test', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(profileForm) })
+                            setProfileTestResult(await r.json())
+                          } catch { setProfileTestResult({ ok: false, error: 'Network error' }) }
+                          setProfileTesting(false)
+                        }}
+                        disabled={!profileForm.host.startsWith('https://') || profileForm.token.length < 5 || profileTesting}
+                        className="flex items-center gap-1 text-[11px] text-indigo-600 hover:text-indigo-800 disabled:text-gray-400 font-medium transition-colors"
+                      >
+                        {profileTesting ? <Loader size={10} className="animate-spin" /> : <FlaskConical size={10} />}
+                        {profileTesting ? 'Testing…' : 'Test connection'}
+                      </button>
+                      {profileTestResult && (
+                        <span className={`text-[10px] ${profileTestResult.ok ? 'text-green-600' : 'text-red-500'}`}>
+                          {profileTestResult.ok ? `✓ ${profileTestResult.user}` : `✕ ${profileTestResult.error}`}
+                        </span>
+                      )}
+                      {profileSaveError && <span className="text-[10px] text-red-500">✕ {profileSaveError}</span>}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button onClick={() => { setAddingProfile(false); setProfileTestResult(null); setProfileSaveError(null) }} className="text-[11px] text-gray-500 hover:text-gray-700">Cancel</button>
+                      <button
+                        onClick={async () => {
+                          setProfileSaving(true); setProfileSaveError(null)
+                          try {
+                            const r = await fetch('/api/profiles', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(profileForm) })
+                            if (r.ok) { loadProfiles(); setAddingProfile(false); setProfileForm({ name: '', host: '', token: '' }); setProfileTestResult(null) }
+                            else { const d = await r.json().catch(() => ({})); const detail = Array.isArray(d.detail) ? d.detail.map((e: any) => e.msg).join('; ') : d.detail; setProfileSaveError(detail || `Failed (${r.status})`) }
+                          } catch { setProfileSaveError('Network error') }
+                          setProfileSaving(false)
+                        }}
+                        disabled={!profileForm.name || !profileForm.host.startsWith('https://') || profileForm.token.length < 5 || profileSaving}
+                        className="px-3 py-1 text-[11px] font-medium bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:opacity-50 transition-all flex items-center gap-1"
+                      >
+                        {profileSaving && <Loader size={10} className="animate-spin" />}
+                        Save
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  onClick={() => { setAddingProfile(true); setProfileForm({ name: '', host: '', token: '' }); setProfileTestResult(null); setProfileSaveError(null) }}
+                  className="flex items-center gap-1.5 text-[12px] text-indigo-600 hover:text-indigo-800 font-medium transition-colors"
+                >
+                  <Plus size={12} /> Add another workspace
+                </button>
+              )}
+
+              <div className="mt-4 p-3 bg-gray-50 rounded-lg text-[11px] text-gray-500 leading-relaxed">
+                This step is optional. You can add workspaces later in <strong>Settings → Workspace Profiles</strong>.
+              </div>
+            </div>
+          )}
+
+          {/* ── Step 3: System access ── */}
+          {step === 3 && (
             <div>
               <h2 className="text-base font-bold text-gray-900 mb-1">System access</h2>
               <p className="text-sm text-gray-500 mb-4 leading-relaxed">
@@ -422,7 +553,7 @@ export function FirstRunWizard() {
             ) : (
               <button
                 onClick={handleFinish}
-                disabled={saving || (!appStatus?.ready && step === 2)}
+                disabled={saving || (!appStatus?.ready && step === 3)}
                 className="px-4 py-1.5 text-[11px] font-medium bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-1.5"
               >
                 {saving && <Loader size={11} className="animate-spin" />}

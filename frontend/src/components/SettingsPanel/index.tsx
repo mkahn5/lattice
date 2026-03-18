@@ -298,7 +298,7 @@ export function SettingsPanel() {
     await saveConfig({ catalogs, schema_limit: schemaLimit, table_limit: tableLimit, warehouse_id: warehouseId })
     setSaving(false)
     setSaved(true)
-    setTimeout(() => setSaved(false), 2000)
+    setTimeout(() => { setSaved(false); setShowSettings(false) }, 1000)
   }
 
   const handleRefreshStatus = () => fetchStatus()

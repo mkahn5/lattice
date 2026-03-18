@@ -135,7 +135,7 @@ def get_cost():
 
 @router.get("/api/profiles")
 def get_profiles():
-    """List available profiles from Lattice config and ~/.databrickscfg."""
+    """List available profiles from Lattice config, ~/.databrickscfg, and the current workspace."""
     import configparser
     from server.config import get_stored_profiles
 
@@ -143,8 +143,22 @@ def get_profiles():
     seen_names: set[str] = set()
     current = os.environ.get("DATABRICKS_PROFILE", "")
 
-    # Lattice-stored profiles first (editable in Settings)
+    # Always include the current/primary workspace as first entry
+    # This handles Databricks App mode (auto-injected) and explicit host+token
+    if _workspace_host:
+        primary_name = current or "primary"
+        profiles.append({
+            "name": primary_name,
+            "host": _workspace_host,
+            "active": True,
+            "source": "app" if os.environ.get("DATABRICKS_APP_NAME") else "env",
+        })
+        seen_names.add(primary_name)
+
+    # Lattice-stored profiles (editable in Settings)
     for name, data in get_stored_profiles().items():
+        if name in seen_names:
+            continue
         profiles.append({
             "name": name,
             "host": data.get("host", ""),
@@ -169,7 +183,7 @@ def get_profiles():
     except Exception as e:
         print(f"[profiles] error: {e}")
 
-    return {"profiles": profiles, "active": current}
+    return {"profiles": profiles, "active": current or "primary"}
 
 
 class ProfileBody(BaseModel):
@@ -226,17 +240,23 @@ def delete_profile(name: str):
 @router.post("/api/profiles/test")
 def test_profile(body: ProfileBody):
     """Test that profile credentials can connect to the workspace."""
+    # Temporarily clear env vars that conflict with PAT auth so the SDK
+    # doesn't try to combine OAuth + PAT and fail with "more than one
+    # authorization method configured".
+    _env_keys = [
+        "DATABRICKS_HOST", "DATABRICKS_TOKEN", "DATABRICKS_CLIENT_ID",
+        "DATABRICKS_CLIENT_SECRET", "DATABRICKS_PROFILE", "DATABRICKS_WORKSPACE_ID",
+    ]
+    saved = {k: os.environ.pop(k) for k in _env_keys if k in os.environ}
     try:
         from databricks.sdk import WorkspaceClient
-        from databricks.sdk.config import Config
-        # Use Config directly to isolate from env vars (avoids conflict with
-        # DATABRICKS_CLIENT_ID/SECRET that may be set for the current workspace)
-        cfg = Config(host=body.host, token=body.token)
-        w = WorkspaceClient(config=cfg)
+        w = WorkspaceClient(host=body.host, token=body.token)
         user = w.current_user.me()
         return {"ok": True, "user": user.user_name}
     except Exception as e:
         return {"ok": False, "error": str(e)}
+    finally:
+        os.environ.update(saved)
 
 
 @router.get("/api/catalogs")

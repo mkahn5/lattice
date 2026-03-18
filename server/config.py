@@ -108,11 +108,17 @@ def get_workspace_client() -> WorkspaceClient:
     if profile in stored:
         sp = stored[profile]
         if sp.get("host") and sp.get("token"):
-            # Use Config directly to isolate from env vars (avoids conflict
-            # with DATABRICKS_CLIENT_ID/SECRET that may be set for the host workspace)
-            from databricks.sdk.config import Config
-            cfg = Config(host=sp["host"], token=sp["token"])
-            return WorkspaceClient(config=cfg)
+            # Temporarily clear conflicting env vars so the SDK doesn't
+            # combine OAuth + PAT and fail with auth conflict
+            _env_keys = [
+                "DATABRICKS_HOST", "DATABRICKS_TOKEN", "DATABRICKS_CLIENT_ID",
+                "DATABRICKS_CLIENT_SECRET", "DATABRICKS_WORKSPACE_ID",
+            ]
+            saved_env = {k: os.environ.pop(k) for k in _env_keys if k in os.environ}
+            try:
+                return WorkspaceClient(host=sp["host"], token=sp["token"])
+            finally:
+                os.environ.update(saved_env)
 
     # Fall back to ~/.databrickscfg (OAuth via CLI)
     try:
