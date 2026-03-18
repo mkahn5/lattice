@@ -85,6 +85,7 @@ def collect_database_instances(apps: list[dict]) -> list[dict]:
     """
     seen: dict[str, dict] = {}
     for app in apps:
+        app_creator = app.get("creator", "")
         for inst_name in app.get("database_instance_names", []):
             if inst_name not in seen:
                 seen[inst_name] = {
@@ -94,7 +95,8 @@ def collect_database_instances(apps: list[dict]) -> list[dict]:
                     "fqn": inst_name,
                     "catalog_name": inst_name,  # Lakebase creates a UC catalog of the same name
                     "state": "",
-                    "creator": "",
+                    "creator": app_creator,
+                    "owner": app_creator,  # best available: the app that declared this database
                     "read_only": False,
                 }
     instances = list(seen.values())
@@ -108,6 +110,8 @@ def fetch_databases(w: WorkspaceClient) -> list[dict]:
     results = []
     try:
         for db in w.database_instances.list():
+            creator = getattr(db, "creator", "") or ""
+            owner = getattr(db, "owner", "") or creator  # fall back to creator if no owner field
             results.append({
                 "id": f"database:{db.name}",
                 "type": "Database",
@@ -115,7 +119,8 @@ def fetch_databases(w: WorkspaceClient) -> list[dict]:
                 "fqn": db.name,
                 "catalog_name": db.name,
                 "state": str(db.state) if getattr(db, "state", None) else "",
-                "creator": getattr(db, "creator", "") or "",
+                "creator": creator,
+                "owner": owner,
                 "read_only": getattr(db, "read_only", False),
             })
     except AttributeError:
