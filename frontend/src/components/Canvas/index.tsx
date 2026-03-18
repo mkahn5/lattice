@@ -458,10 +458,11 @@ export function Canvas() {
   const [rfEdges, setRfEdges, onEdgesChange] = useEdgesState<Edge>([])
   const { fitView, setCenter, getViewport } = useReactFlow()
 
-  // Preserve manual node positions across incremental filter changes.
-  // Cleared only on hard resets (layout mode / view mode change).
+  // Preserve manual node positions across incremental changes.
+  // Cleared on hard resets: layout mode, view mode, search, or type filter change.
   const savedPositions = useRef<Map<string, { x: number; y: number }>>(new Map())
-  const hardResetKey = `${viewMode}|${layoutMode}|${searchQuery}`
+  const filterTypesKey = useMemo(() => [...filterTypes].sort().join(','), [filterTypes])
+  const hardResetKey = `${viewMode}|${layoutMode}|${searchQuery}|${filterTypesKey}`
   const prevHardResetKey = useRef('')
   const initialFitDone = useRef(false)
 
