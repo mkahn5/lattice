@@ -791,11 +791,18 @@ function ProfileSwitcher({ onSwitching }: { onSwitching: (v: boolean) => void })
   const [switching, setSwitching] = useState(false)
   const active = profiles.find(p => p.active)
 
-  useEffect(() => {
+  const fetchProfiles = () => {
     fetch('/api/profiles')
       .then(r => r.json())
       .then(d => setProfiles(d.profiles ?? []))
       .catch(() => {})
+  }
+
+  // Fetch on mount and periodically (picks up profiles added in Settings)
+  useEffect(() => {
+    fetchProfiles()
+    const interval = setInterval(fetchProfiles, 10000)
+    return () => clearInterval(interval)
   }, [])
 
   const switchTo = async (profile: string) => {

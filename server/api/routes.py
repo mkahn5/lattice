@@ -144,12 +144,22 @@ def get_profiles():
     current = os.environ.get("DATABRICKS_PROFILE", "")
 
     # Always include the current/primary workspace as first entry
-    # This handles Databricks App mode (auto-injected) and explicit host+token
-    if _workspace_host:
+    # _workspace_host is set after ingestion; fall back to env vars or databrickscfg
+    primary_host = _workspace_host or os.environ.get("DATABRICKS_HOST", "")
+    if not primary_host and current:
+        # Try reading host from ~/.databrickscfg for the current profile
+        try:
+            cfg = configparser.ConfigParser()
+            cfg.read(os.path.expanduser("~/.databrickscfg"))
+            if current in cfg:
+                primary_host = cfg[current].get("host", "")
+        except Exception:
+            pass
+    if primary_host:
         primary_name = current or "primary"
         profiles.append({
             "name": primary_name,
-            "host": _workspace_host,
+            "host": primary_host,
             "active": True,
             "source": "app" if os.environ.get("DATABRICKS_APP_NAME") else "env",
         })
