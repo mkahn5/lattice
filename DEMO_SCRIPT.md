@@ -1,173 +1,117 @@
 # Lattice Demo Script
 
-**Target length:** 4–5 minutes
-**Format:** Loom screen recording with voiceover
-**Starting state:** Lattice loaded in browser, Lanes view, All assets, no filters active
+**Target length:** 60–90 seconds (LinkedIn optimized)
+**Format:** 1920x1080 landscape, MP4, native upload to LinkedIn
+**Recording:** ScreenStudio or Loom with webcam PiP (bottom-left, small)
+**Captions:** Burned-in (Descript or CapCut) — LinkedIn auto-mutes in feed
+**Starting state:** Lattice loaded, Lanes view, All assets, no filters
 
 ---
 
-## Opening (15 seconds)
+## Hook — First 3 Seconds
 
-> "This is Lattice — an ontology and visual intelligence platform for Databricks workspaces. It builds a live ontology of your environment — every Unity Catalog object, compute resource, job, dashboard, and app mapped as typed entities with semantic relationships. Think of it as a knowledge graph for your data platform. Let me walk you through what it can do."
+**On screen:** Full canvas zoomed out showing 3,630+ nodes in Lanes view. Big, colorful, impressive.
 
-**On screen:** Full canvas in Lanes view showing 3,630 assets. Let it breathe for a moment.
-
----
-
-## 1. The Graph — Full Workspace Topology (30 seconds)
-
-> "Right now we're looking at a single Databricks workspace — 3,630 assets across 19 different node types, all discovered automatically from the Unity Catalog API and system tables."
-
-**Action:** Slowly scroll down through the lanes to show the scale — schemas, databases, tables, views, connections, warehouses, jobs, apps.
-
-> "The swimlane layout groups assets by type. Blue nodes are UC data assets — catalogs, schemas, tables. Green are databases. Orange are warehouses. Purple are jobs. Each row is a type."
-
-**Action:** Point out 2-3 lane labels as you scroll.
+> "What if you could see your entire Databricks workspace — every table, every job, every warehouse — in a single view?"
 
 ---
 
-## 2. Layout Modes (20 seconds)
+## Use Case 1: "What do we have?" (15 seconds)
 
-> "You can switch between layout modes depending on what you're analyzing."
+**Action:** Slow scroll down through lanes showing the scale.
 
-**Action:** Click **Tree →** to show the hierarchy layout.
-
-> "Tree view shows the catalog hierarchy — how catalogs contain schemas, schemas contain tables. Useful for understanding the structural organization."
-
-**Action:** Click back to **Lanes**.
-
-> "And Lanes groups everything by asset type — great for seeing the full picture at a glance."
+> "Lattice maps 3,600 assets across 19 types — catalogs, tables, jobs, warehouses, apps — all discovered automatically. No manual inventory. No spreadsheets."
 
 ---
 
-## 3. Selecting an Asset — Detail Panel (30 seconds)
+## Use Case 2: "What's this asset connected to?" (15 seconds)
 
-> "Click any node to inspect it."
+**Action:** Click a schema node → detail panel opens showing 39 connections. Click **Focus**.
 
-**Action:** Click on a schema with many connections (e.g., `_ba-de-test-wk7`).
-
-> "The detail panel shows the asset's properties — owner, creation date — and all 39 of its connections. You can see exactly what this schema contains: tables, views, volumes, and the catalog it belongs to."
-
-**Action:** Scroll the connections list briefly.
-
-> "Every node also has a direct link to open it in the Databricks console."
+> "Click any asset to see its connections. Focus mode isolates it with all dependencies — what it contains, what depends on it."
 
 ---
 
-## 4. Focus View — Exploring Connections (30 seconds)
+## Use Case 3: "What's costing us money?" (10 seconds)
 
-> "When you want to isolate an asset and its dependencies, click Focus."
+**Action:** Toggle **Cost** overlay → warehouses light up orange with DBU spend.
 
-**Action:** Click the **Focus** button with the schema selected.
+> "Toggle cost overlay. Instantly see which warehouses drive the most spend — 98K DBU here, 89K there. Click any one for the full attribution breakdown."
 
-> "Focus pulls the selected asset and all its direct connections out of the main layout — callers above, targets below. Here we can see all 39 assets that this schema touches, arranged for easy analysis. The rest of the graph stays intact in the lanes."
-
-**Action:** Pause to let the viewer see the focused group.
+**Action:** Disable cost overlay.
 
 ---
 
-## 5. Type Filtering — Targeted Analysis (25 seconds)
+## Use Case 4: "What's stale?" (10 seconds)
 
-> "You can filter the graph to just the asset types you care about."
+**Action:** Click **7d** in Activity Timeline → dimmed nodes appear.
 
-**Action:** Click **App** in the sidebar, then click **Database** to show both.
+> "Filter by activity. Dimmed nodes have zero queries in 7 days. 119 orphaned tables flagged — ready for cleanup."
 
-> "Now we're looking at just Apps and Databases — 321 nodes out of 3,630. You can immediately see the 'uses' relationships — which apps depend on which databases. This is incredibly useful for understanding your application layer."
-
-**Action:** Let the filtered view display for a moment. Then reset the filter (click both types again to deselect).
+**Action:** Click **All** to reset.
 
 ---
 
-## 6. Activity Timeline — Finding Stale Assets (30 seconds)
+## Use Case 5: "Show me just the apps." (10 seconds)
 
-> "The activity timeline lets you filter by freshness."
+**Action:** Click **App** in sidebar → canvas reflows to show 300 app nodes.
 
-**Action:** Click the **7d** button in the Activity Timeline section.
+> "Filter to any asset type. 300 apps, their connections, their databases — instantly."
 
-> "Now we're highlighting only assets that have been active in the last 7 days. Active nodes are fully visible. Inactive ones are dimmed with dashed borders. You can immediately spot which schemas, tables, and jobs are stale."
-
-**Action:** Scroll to show a mix of active and dimmed nodes.
-
-> "This is powerful for cleanup — if a table hasn't been queried in 30 days and has no owner, it's a candidate for deprecation."
-
-**Action:** Click **All** to reset the timeline filter.
+**Action:** Click **App** again to reset.
 
 ---
 
-## 7. Health Panel — Orphan Detection (25 seconds)
+## Close + CTA (10 seconds)
 
-> "The Health panel in the sidebar surfaces governance issues."
+> "Lattice deploys as a Databricks App — zero infrastructure. One-click install from GitHub. Open source."
 
-**Action:** Click the **Health** dropdown showing "119 orphaned".
-
-> "119 orphaned assets — tables with zero queries in 30 days. You can also see unowned assets — active tables with no owner assigned. Click any item to navigate directly to it on the canvas."
-
-**Action:** Click one orphaned asset to jump to it.
-
-> "You can export this entire list as CSV for audit workflows or stakeholder reviews."
+> "Link in comments. Try it on your workspace today."
 
 ---
 
-## 8. Cost Overlay (25 seconds)
+## LinkedIn Post Template
 
-> "Toggle the cost overlay to see compute spend across the workspace."
+```
+I built an open-source ontology tool for Databricks workspaces.
 
-**Action:** Enable the **Cost** toggle in the sidebar.
+It maps every UC asset, warehouse, job, dashboard, and app
+into a single interactive knowledge graph.
 
-> "Every warehouse and compute resource now shows its 30-day DBU spend. Darker orange means higher cost. Click a warehouse to see the breakdown — which tables and jobs are driving that spend."
+3,600+ assets. 19 node types. Zero external infrastructure.
 
-**Action:** Click on a warehouse to show cost attribution in the detail panel.
+What it does:
+→ Visual topology of your entire workspace
+→ Cost attribution per asset (DBU heatmap)
+→ Orphan detection (stale tables, no owner)
+→ Activity timeline (hot/warm/cold assets)
+→ Focus mode for dependency analysis
+→ Deploys as a native Databricks App
 
-> "This gives platform teams a direct line of sight from cost to the assets that generate it."
+Try it: [link in comments]
 
-**Action:** Disable the Cost toggle.
-
----
-
-## 9. Workspace & Catalog Switching (20 seconds)
-
-> "Lattice supports multiple workspaces and catalogs."
-
-**Action:** Click the workspace switcher (globe icon) to show the dropdown.
-
-> "You can switch between workspace profiles — dev, staging, production — without restarting. Each workspace ingests independently."
-
-**Action:** Close the dropdown. Click the catalog selector to show the catalog list.
-
-> "And you can scope the graph to specific catalogs. This workspace has over 200 catalogs — including foreign catalogs and Delta Sharing sources. Just search and select."
-
-**Action:** Close the dropdown.
+#Databricks #DataEngineering #UnityCatalog #DataGovernance #OpenSource
+```
 
 ---
 
-## 10. Save View & Export (20 seconds)
+## Recording Checklist
 
-> "When you've got a view you want to share, click Save View."
+- [ ] 1920x1080, full screen, no bookmarks bar
+- [ ] Do Not Disturb ON
+- [ ] Close all other tabs and apps
+- [ ] Webcam PiP: bottom-left, small circle, good lighting
+- [ ] Pre-load Lattice with data ingested (no loading state)
+- [ ] Practice the flow once before recording
+- [ ] Mouse movements: slow, deliberate
+- [ ] After each action: pause 1-2 seconds (not 3 — keep it fast)
 
-**Action:** Click **Save View** to show the capture pane.
+## Post-Recording
 
-> "This freezes the current canvas into a comparison pane. From here you can export as a high-resolution PNG for presentations, JSON for programmatic analysis, or CSV for a tabular export of every asset in the view."
-
-**Action:** Show the export options briefly.
-
----
-
-## Closing (15 seconds)
-
-> "Lattice deploys as a native Databricks App — zero external infrastructure. It uses the Databricks SDK, Unity Catalog APIs, and system tables. Everything you've seen runs inside your workspace."
-
-> "If you're a data architect, platform engineer, or governance lead trying to understand what's in your Databricks environment — who owns what, what's active, what's costing money, and what's safe to change — Lattice gives you a live ontology of your entire platform in a single view."
-
-> "Reach out if you'd like to try it. Thanks for watching."
-
----
-
-## Tips for Recording
-
-- **Browser:** Full screen, 1920×1080, no bookmarks bar
-- **Zoom:** Make sure the Lattice sidebar and canvas text are readable
-- **Mouse movement:** Slow, deliberate — let the viewer's eye follow
-- **Pauses:** After each major action, pause 2-3 seconds so the viewer can absorb
-- **Mistakes:** If you misclick, just keep going — Loom lets you trim
-- **Close other tabs:** Only Lattice should be visible
-- **Silence notifications:** Turn on Do Not Disturb before recording
+- [ ] Trim dead air in Descript or CapCut
+- [ ] Add burned-in captions (not auto-generated)
+- [ ] Export as MP4
+- [ ] Upload natively to LinkedIn (never paste a YouTube link)
+- [ ] First comment: GitHub repo link + install instructions
+- [ ] Tag relevant people (@Databricks colleagues, data engineering community)
+- [ ] 3-5 hashtags in post text
