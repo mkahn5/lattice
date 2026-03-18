@@ -230,7 +230,7 @@ GRANT SELECT ON TABLE system.lakeflow.job_run_timeline TO `<principal>`;
 
 ### 4. Open Lattice
 
-Navigate to `https://<workspace-host>/apps/lattice`. The first-run wizard will guide you through catalog selection and system access checks.
+Go to **Compute → Apps → lattice**. Once the status shows **Running**, click the app URL link next to the status badge to launch Lattice. The first-run wizard will guide you through catalog selection and system access checks.
 
 ### Alternative: Deploy via CLI
 

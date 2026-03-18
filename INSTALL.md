@@ -119,7 +119,7 @@ GRANT SELECT ON TABLE system.lakeflow.job_run_timeline TO `<principal>`;
 
 ### Step 6: Open Lattice
 
-The app will be available at `https://<workspace-host>/apps/lattice`.
+Go to **Compute → Apps → lattice**. Once the status shows **Running**, click the app URL link next to the status badge to launch Lattice.
 
 On first launch, Lattice runs a setup wizard:
 1. **Welcome** — explains what Lattice maps
