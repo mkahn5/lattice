@@ -138,13 +138,14 @@ interface ProfileFormProps {
   testResult: { ok: boolean; user?: string; error?: string } | null
   testing: boolean
   saving: boolean
+  saveError?: string | null
   isEdit?: boolean
   onTest: () => void
   onSave: () => void
   onCancel: () => void
 }
 
-function ProfileForm({ form, setForm, testResult, testing, saving, isEdit, onTest, onSave, onCancel }: ProfileFormProps) {
+function ProfileForm({ form, setForm, testResult, testing, saving, saveError, isEdit, onTest, onSave, onCancel }: ProfileFormProps) {
   const canTest = form.host.startsWith('https://') && form.token.length > 5
   const canSave = form.name.length > 0 && form.host.startsWith('https://') && (isEdit || form.token.length > 5)
 
@@ -198,6 +199,9 @@ function ProfileForm({ form, setForm, testResult, testing, saving, isEdit, onTes
               {testResult.ok ? `✓ Connected as ${testResult.user}` : `✕ ${testResult.error}`}
             </span>
           )}
+          {saveError && (
+            <span className="text-[9px] text-red-500">✕ {saveError}</span>
+          )}
         </div>
         <div className="flex items-center gap-2">
           <button onClick={onCancel} className="text-[10px] text-gray-500 hover:text-gray-700 transition-colors">
@@ -243,6 +247,7 @@ export function SettingsPanel() {
   const [testing, setTesting] = useState(false)
   const [profileSaving, setProfileSaving] = useState(false)
   const [deletingProfile, setDeletingProfile] = useState<string | null>(null)
+  const [profileSaveError, setProfileSaveError] = useState<string | null>(null)
 
   const loadProfiles = () => {
     fetch('/api/profiles').then(r => r.json()).then(d => setProfiles(d.profiles ?? [])).catch(() => {})
@@ -394,9 +399,10 @@ export function SettingsPanel() {
                         testResult={testResult}
                         testing={testing}
                         saving={profileSaving}
+                        saveError={profileSaveError}
                         isEdit
                         onTest={async () => {
-                          setTesting(true); setTestResult(null)
+                          setTesting(true); setTestResult(null); setProfileSaveError(null)
                           try {
                             const r = await fetch('/api/profiles/test', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(profileForm) })
                             setTestResult(await r.json())
@@ -404,14 +410,15 @@ export function SettingsPanel() {
                           setTesting(false)
                         }}
                         onSave={async () => {
-                          setProfileSaving(true)
+                          setProfileSaving(true); setProfileSaveError(null)
                           try {
                             const r = await fetch('/api/profiles', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(profileForm) })
-                            if (r.ok) { loadProfiles(); setEditingProfile(null); setTestResult(null) }
-                          } catch {}
+                            if (r.ok) { loadProfiles(); setEditingProfile(null); setTestResult(null); setProfileSaveError(null) }
+                            else { const d = await r.json().catch(() => ({})); const detail = Array.isArray(d.detail) ? d.detail.map((e: any) => e.msg).join('; ') : d.detail; setProfileSaveError(detail || `Save failed (${r.status})`) }
+                          } catch (e) { setProfileSaveError('Network error') }
                           setProfileSaving(false)
                         }}
-                        onCancel={() => { setEditingProfile(null); setTestResult(null) }}
+                        onCancel={() => { setEditingProfile(null); setTestResult(null); setProfileSaveError(null) }}
                       />
                     )
                   }
@@ -476,8 +483,9 @@ export function SettingsPanel() {
                     testResult={testResult}
                     testing={testing}
                     saving={profileSaving}
+                    saveError={profileSaveError}
                     onTest={async () => {
-                      setTesting(true); setTestResult(null)
+                      setTesting(true); setTestResult(null); setProfileSaveError(null)
                       try {
                         const r = await fetch('/api/profiles/test', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(profileForm) })
                         setTestResult(await r.json())
@@ -485,11 +493,12 @@ export function SettingsPanel() {
                       setTesting(false)
                     }}
                     onSave={async () => {
-                      setProfileSaving(true)
+                      setProfileSaving(true); setProfileSaveError(null)
                       try {
                         const r = await fetch('/api/profiles', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(profileForm) })
-                        if (r.ok) { loadProfiles(); setAddingProfile(false); setProfileForm({ name: '', host: '', token: '' }); setTestResult(null) }
-                      } catch {}
+                        if (r.ok) { loadProfiles(); setAddingProfile(false); setProfileForm({ name: '', host: '', token: '' }); setTestResult(null); setProfileSaveError(null) }
+                        else { const d = await r.json().catch(() => ({})); const detail = Array.isArray(d.detail) ? d.detail.map((e: any) => e.msg).join('; ') : d.detail; setProfileSaveError(detail || `Save failed (${r.status})`) }
+                      } catch (e) { setProfileSaveError('Network error') }
                       setProfileSaving(false)
                     }}
                     onCancel={() => { setAddingProfile(false); setTestResult(null) }}

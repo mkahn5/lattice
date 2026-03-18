@@ -58,8 +58,8 @@ def apply_app_config():
 
 # Profiles: alphanumerics, hyphens, underscores, dots only (matches Databricks CLI convention)
 _PROFILE_RE = re.compile(r'^[a-zA-Z0-9_\-\.]{1,128}$')
-# Hosts: https scheme, no embedded newlines or shell metacharacters
-_HOST_RE = re.compile(r'^https://[a-zA-Z0-9._\-]+(:\d+)?$')
+# Hosts: https scheme, allows path/query for Azure workspaces, no embedded newlines or shell metacharacters
+_HOST_RE = re.compile(r'^https://[a-zA-Z0-9._\-]+(:\d+)?(/[a-zA-Z0-9._\-/?=&%]*)?$')
 
 
 def _get_token_for_profile(profile: str, host: str) -> str | None:

@@ -188,9 +188,10 @@ class ProfileBody(BaseModel):
     @field_validator("host")
     @classmethod
     def validate_host(cls, v):
+        v = v.rstrip("/")
         from server.config import _HOST_RE
         if not _HOST_RE.match(v):
-            raise ValueError("Host must be an https:// URL")
+            raise ValueError("Host must be an https:// URL (e.g. https://my-workspace.cloud.databricks.com)")
         return v
 
 
