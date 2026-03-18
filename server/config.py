@@ -108,7 +108,11 @@ def get_workspace_client() -> WorkspaceClient:
     if profile in stored:
         sp = stored[profile]
         if sp.get("host") and sp.get("token"):
-            return WorkspaceClient(host=sp["host"], token=sp["token"])
+            # Use Config directly to isolate from env vars (avoids conflict
+            # with DATABRICKS_CLIENT_ID/SECRET that may be set for the host workspace)
+            from databricks.sdk.config import Config
+            cfg = Config(host=sp["host"], token=sp["token"])
+            return WorkspaceClient(config=cfg)
 
     # Fall back to ~/.databrickscfg (OAuth via CLI)
     try:

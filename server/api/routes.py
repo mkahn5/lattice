@@ -228,7 +228,11 @@ def test_profile(body: ProfileBody):
     """Test that profile credentials can connect to the workspace."""
     try:
         from databricks.sdk import WorkspaceClient
-        w = WorkspaceClient(host=body.host, token=body.token)
+        from databricks.sdk.config import Config
+        # Use Config directly to isolate from env vars (avoids conflict with
+        # DATABRICKS_CLIENT_ID/SECRET that may be set for the current workspace)
+        cfg = Config(host=body.host, token=body.token)
+        w = WorkspaceClient(config=cfg)
         user = w.current_user.me()
         return {"ok": True, "user": user.user_name}
     except Exception as e:
