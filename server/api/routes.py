@@ -143,11 +143,10 @@ def get_profiles():
     seen_names: set[str] = set()
     current = os.environ.get("DATABRICKS_PROFILE", "")
 
-    # Always include the current/primary workspace as first entry
-    # _workspace_host is set after ingestion; fall back to env vars or databrickscfg
+    # Always include the current/primary workspace as first entry.
+    # _workspace_host is set after ingestion; fall back to env vars or databrickscfg.
     primary_host = _workspace_host or os.environ.get("DATABRICKS_HOST", "")
     if not primary_host and current:
-        # Try reading host from ~/.databrickscfg for the current profile
         try:
             cfg = configparser.ConfigParser()
             cfg.read(os.path.expanduser("~/.databrickscfg"))
@@ -155,15 +154,16 @@ def get_profiles():
                 primary_host = cfg[current].get("host", "")
         except Exception:
             pass
-    if primary_host:
-        primary_name = current or "primary"
-        profiles.append({
-            "name": primary_name,
-            "host": primary_host,
-            "active": True,
-            "source": "app" if os.environ.get("DATABRICKS_APP_NAME") else "env",
-        })
-        seen_names.add(primary_name)
+    # Always add the primary entry — even without a host yet (loading state)
+    primary_name = current or "primary"
+    is_app = bool(os.environ.get("DATABRICKS_APP_NAME"))
+    profiles.append({
+        "name": primary_name,
+        "host": primary_host or "(connecting…)",
+        "active": not current or current == primary_name,
+        "source": "app" if is_app else "env",
+    })
+    seen_names.add(primary_name)
 
     # Lattice-stored profiles (editable in Settings)
     for name, data in get_stored_profiles().items():
