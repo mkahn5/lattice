@@ -830,7 +830,7 @@ function ProfileSwitcher({ onSwitching }: { onSwitching: (v: boolean) => void })
         title="Switch workspace profile"
       >
         <Globe size={10} className="shrink-0 text-gray-400" />
-        <span className="truncate">{active?.host?.replace(/^https?:\/\//, '').replace(/\/$/, '') ?? 'no profile'}</span>
+        <span className="truncate">{active?.host?.replace(/^https?:\/\//, '').replace(/\/$/, '') || 'Default workspace'}</span>
         <ChevronDown size={10} className="shrink-0" />
       </button>
 
