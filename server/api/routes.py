@@ -29,6 +29,14 @@ def _check_cooldown(endpoint: str) -> None:
 
 router = APIRouter()
 
+# Version — imported from app.py or fallback
+try:
+    from app import __version__ as _APP_VERSION
+except ImportError:
+    _APP_VERSION = "unknown"
+
+GITHUB_RELEASES_URL = "https://api.github.com/repos/databricks-field-eng/lattice/releases/latest"
+
 # Graph state held in module-level variable (rebuilt on /refresh)
 _graph_data: dict = {"nodes": [], "edges": [], "stats": {}}
 
@@ -236,6 +244,24 @@ def get_status():
     if _preflight is None:
         return {"ready": False, "running": False, "checks": [], "user": None, "warehouse_id": None}
     return _preflight.get_status()
+
+
+@router.get("/api/version")
+def get_version():
+    """Return current and latest available version."""
+    result = {"current": _APP_VERSION, "latest": None, "update_available": False}
+    try:
+        import urllib.request
+        req = urllib.request.Request(GITHUB_RELEASES_URL, headers={"Accept": "application/vnd.github.v3+json"})
+        with urllib.request.urlopen(req, timeout=3) as resp:
+            data = json.loads(resp.read())
+            latest = data.get("tag_name", "").lstrip("v")
+            if latest:
+                result["latest"] = latest
+                result["update_available"] = latest != _APP_VERSION
+    except Exception:
+        pass  # GitHub unreachable or no releases — just return current
+    return result
 
 
 @router.get("/api/config")

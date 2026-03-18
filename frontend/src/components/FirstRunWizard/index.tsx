@@ -2,6 +2,14 @@ import { useEffect, useRef, useState } from 'react'
 import { useGraphStore, type PreflightCheck } from '../../stores/graphStore'
 import { CheckCircle, XCircle, Loader, Copy, Check, ExternalLink } from 'lucide-react'
 
+function useVersionInfo() {
+  const [info, setInfo] = useState<{ current: string; latest: string | null; update_available: boolean } | null>(null)
+  useEffect(() => {
+    fetch('/api/version').then(r => r.json()).then(setInfo).catch(() => {})
+  }, [])
+  return info
+}
+
 const STEPS = ['Welcome', 'Catalog scope', 'System access']
 
 // Catalog scope presets
@@ -145,6 +153,7 @@ function CheckRow({ check, workspaceHost }: { check: PreflightCheck; workspaceHo
 
 export function FirstRunWizard() {
   const { appStatus, workspaceInfo, saveConfig, fetchStatus, setShowWizard } = useGraphStore()
+  const versionInfo = useVersionInfo()
   const [step, setStep] = useState(0)
   const [selectedCatalogs, setSelectedCatalogs] = useState<string[]>([])
   const [allCatalogs, setAllCatalogs] = useState<{ name: string; type: string }[]>([])
@@ -226,7 +235,19 @@ export function FirstRunWizard() {
           {/* ── Step 0: Welcome ── */}
           {step === 0 && (
             <div>
-              <div className="text-3xl mb-3">🔷</div>
+              <div className="flex items-center gap-3 mb-3">
+                <div className="text-3xl">🔷</div>
+                {versionInfo && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-mono text-gray-400 bg-gray-100 px-2 py-0.5 rounded">v{versionInfo.current}</span>
+                    {versionInfo.update_available && versionInfo.latest && (
+                      <span className="text-[10px] text-amber-600 bg-amber-50 px-2 py-0.5 rounded font-medium">
+                        v{versionInfo.latest} available
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
               <h2 className="text-lg font-bold text-gray-900 mb-1">Welcome to Lattice</h2>
               <p className="text-sm text-gray-500 mb-5 leading-relaxed">
                 Lattice maps your entire Databricks workspace into an interactive knowledge graph — so you can explore data assets, compute, lineage, and cost in one place.

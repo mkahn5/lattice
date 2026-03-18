@@ -118,8 +118,17 @@ function CheckRow({ check, workspaceHost }: { check: PreflightCheck; workspaceHo
   )
 }
 
+function useVersionInfo() {
+  const [info, setInfo] = useState<{ current: string; latest: string | null; update_available: boolean } | null>(null)
+  useEffect(() => {
+    fetch('/api/version').then(r => r.json()).then(setInfo).catch(() => {})
+  }, [])
+  return info
+}
+
 export function SettingsPanel() {
   const { appConfig, appStatus, workspaceInfo, saveConfig, fetchConfig, fetchStatus, setShowSettings, setShowWizard } = useGraphStore()
+  const versionInfo = useVersionInfo()
 
   const [catalogs, setCatalogs] = useState<string[]>([])
   const [allCatalogs, setAllCatalogs] = useState<{ name: string }[]>([])
@@ -192,7 +201,17 @@ export function SettingsPanel() {
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
           <div>
-            <h2 className="text-sm font-bold text-gray-900">Settings</h2>
+            <div className="flex items-center gap-2">
+              <h2 className="text-sm font-bold text-gray-900">Settings</h2>
+              {versionInfo && (
+                <span className="text-[9px] font-mono text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">v{versionInfo.current}</span>
+              )}
+              {versionInfo?.update_available && versionInfo.latest && (
+                <span className="text-[9px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded font-medium">
+                  v{versionInfo.latest} available
+                </span>
+              )}
+            </div>
             <p className="text-[11px] text-gray-400 mt-0.5">Configure catalog scope, limits, and warehouse</p>
           </div>
           <button onClick={() => setShowSettings(false)} className="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100 transition-all">
