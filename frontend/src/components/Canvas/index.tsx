@@ -49,6 +49,7 @@ function getConsoleUrl(host: string, node: LatticeNode): string | null {
     case 'Schema':   return `${base}/explore/data/${cat}/${node.name}`
     case 'Table':
     case 'View':     return `${base}/explore/data/${cat}/${sch}/${node.name}`
+    case 'Volume':   return `${base}/explore/data/volumes/${cat}/${sch}/${node.name}`
     case 'Model':    return `${base}/explore/data/models/${cat}/${sch}/${node.name}`
     case 'Warehouse': return `${base}/sql/warehouses/${node.fqn}`
     case 'Cluster':  return `${base}/clusters/${node.fqn}`
