@@ -394,6 +394,19 @@ After first launch, configure catalog scope, limits, and warehouse in **Settings
 
 ## Release Notes
 
+### v0.5.0 — Deployment & Canvas UX (Mar 17–18, 2026)
+- **Databricks Apps deployment:** Git-based deployment with GitHub PAT, SQL warehouse resource injection, and `.venv/bin/python3` fix for uvicorn module resolution.
+- **Frontend included in repo:** `frontend/dist/` committed so Git-based deployments work without Node.js in the app runtime.
+- **Auto-reflow on search:** Typing in the search box now resets layout and zooms to filtered results automatically — no need to click a layout button.
+- **Auto-reflow on type filter:** Clicking asset types in the sidebar re-layouts and zooms to the filtered nodes instantly.
+- **Smart layout preservation:** When nodes have been manually arranged (drag or Focus), filter/search changes preserve positions instead of hard-resetting. A "Reset layout of filtered view" button appears to re-layout on demand.
+- **Volume console links:** Volume nodes now show the "Open in Databricks" link (Catalog Explorer URL).
+- **Database owner field:** Database nodes now capture owner (from SDK or app creator fallback) and display it in the detail panel.
+- **Ontology positioning:** README, INSTALL, and demo script updated to position Lattice as an ontology platform. Phase 6 roadmap updated to "Ontology writeback."
+- **Requirements section:** Feature-to-requirement mapping showing minimum vs full requirements.
+- **Installation guide rewrite:** Step-by-step Databricks Apps deployment with GitHub PAT, warehouse config, system table grants (account admin clarification), and app permissions.
+- **Troubleshooting guide rewrite:** Covers uvicorn module error, frontend 404, system catalog PERMISSION_DENIED, partial system table access, and non-fatal log warnings.
+
 ### v0.4.0 — Intelligence Layer (Mar 13, 2026)
 - **Health panel:** Detects orphaned tables (cold + 0 queries in 30d) and unowned assets. Collapsible sidebar section with clickable node list.
 - **Impact analysis:** "Analyze" button on any node triggers BFS — shows "Depends on this" (consumers) and "Contained within" (descendants).
