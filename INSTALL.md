@@ -74,34 +74,20 @@ databricks apps deploy lattice \
 
 ### Step 4: Configure the SQL Warehouse
 
-The app needs a SQL warehouse to query system tables for cost, lineage, heat, and orphan detection. The warehouse ID is passed to the app via the `resources` section in `app.yaml`.
+The app needs a SQL warehouse to query system tables for cost, lineage, heat, and orphan detection.
 
-**Option A: Auto-select (default)**
+**During Databricks App setup**, you'll be prompted to select a SQL warehouse. This injects the `DATABRICKS_WAREHOUSE_ID` environment variable into the app automatically — no manual configuration needed.
 
-The included `app.yaml` uses `id: auto` which picks the first available warehouse in the workspace. This works out of the box for most deployments.
+If you need to change the warehouse later:
 
-**Option B: Specific warehouse**
-
-To target a specific warehouse, edit `app.yaml` before deploying:
-
-```yaml
-resources:
-  - name: sql-warehouse
-    sql_warehouse:
-      id: abc1234567890def   # replace with your warehouse ID
-```
-
-Find your warehouse ID in **SQL → SQL Warehouses → [warehouse name] → Connection details**.
-
-**Option C: Set via Databricks Apps UI**
-
-After creating the app:
 1. Go to **Compute → Apps → lattice → Settings**
-2. Under **Resources**, find the `sql-warehouse` resource
-3. Select your warehouse from the dropdown
+2. Under **Resources**, find the SQL warehouse resource
+3. Select a different warehouse from the dropdown
 4. Click **Save** and restart the app
 
-> **Important:** The warehouse must be running when the app starts. If it's stopped, system table features will be unavailable until the warehouse is started and the app is restarted or refreshed.
+The included `app.yaml` also declares a `sql-warehouse` resource with `id: auto` as a fallback, which picks the first available warehouse if none was selected during setup.
+
+> **Important:** The warehouse must be running when the app starts. If it's stopped, system table features will be unavailable until the warehouse is started and the app is refreshed.
 
 ### Step 5: Grant System Table Access
 
