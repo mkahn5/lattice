@@ -39,20 +39,25 @@ With just these, Lattice discovers and visualizes all UC assets, compute resourc
 
 ## Deploy as a Databricks App
 
-### Step 1: Create a GitHub Personal Access Token
+### Step 1: Fork the Repo
 
-Lattice source code is hosted on GitHub. You'll need a personal access token (PAT) to connect the repo during app setup.
+Databricks Apps requires you to deploy from a repository you own. Fork Lattice to your GitHub account:
+
+1. Go to [github.com/databricks-field-eng/lattice](https://github.com/databricks-field-eng/lattice)
+2. Click **Fork** (top right) → create the fork under your account
+
+### Step 2: Create a GitHub Personal Access Token
 
 1. Go to **GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens**
 2. Click **Generate new token**
 3. Set:
    - **Token name:** `lattice-databricks`
    - **Expiration:** 90 days (or custom)
-   - **Repository access:** Select `databricks-field-eng/lattice` (or your fork)
+   - **Repository access:** Select your forked `<your-username>/lattice` repo
    - **Permissions:** Contents → Read-only
 4. Click **Generate token** and copy the value
 
-### Step 2: Create the Databricks App
+### Step 3: Create the Databricks App
 
 **Option A: From the Databricks UI**
 
@@ -61,9 +66,9 @@ Lattice source code is hosted on GitHub. You'll need a personal access token (PA
    - **Name:** `lattice`
    - **Description:** Ontology and visual intelligence for this workspace
 3. Under **Source**, select **Git repository**
-4. Enter the repo URL: `https://github.com/databricks-field-eng/lattice.git`
+4. Enter your fork URL: `https://github.com/<your-username>/lattice.git`
 5. Set the branch to `main`
-6. When prompted for Git credentials, enter your **GitHub username** and paste the **PAT** from Step 1
+6. When prompted for Git credentials, enter your **GitHub username** and paste the **PAT** from Step 2
 7. Click **Create**
 
 **Option B: From the Databricks CLI (alternative)**
@@ -85,7 +90,7 @@ databricks apps deploy lattice \
   --profile my-workspace
 ```
 
-### Step 3: Configure the SQL Warehouse
+### Step 4: Configure the SQL Warehouse
 
 The app needs a SQL warehouse to query system tables for cost, lineage, heat, and orphan detection.
 
@@ -102,7 +107,7 @@ The included `app.yaml` also declares a `sql-warehouse` resource with `id: auto`
 
 > **Important:** The warehouse must be running when the app starts. If it's stopped, system table features will be unavailable until the warehouse is started and the app is refreshed.
 
-### Step 4: Grant System Table Access
+### Step 5: Grant System Table Access
 
 On many workspaces, the app service principal inherits system table access through group membership — **no explicit grants needed**. Check **Settings → System Access** inside Lattice after launch to see which features are active.
 
@@ -130,11 +135,11 @@ GRANT SELECT ON TABLE system.lakeflow.job_run_timeline TO `<principal>`;
 
 > **Note:** Granting on the `system` catalog requires the **account admin** role, not just workspace admin. If you get `PERMISSION_DENIED: User is not an account admin`, ask your account admin to run the grants — or skip this step entirely if the features are already working.
 
-### Step 5: Open Lattice
+### Step 6: Open Lattice
 
 Go to **Compute → Apps → lattice**. Once the status shows **Running**, click the app URL link next to the status badge to launch Lattice.
 
-### Step 6: Set App Permissions
+### Step 7: Set App Permissions
 
 By default, only the app creator can access Lattice. To share it across your organization:
 

@@ -228,9 +228,13 @@ With just these, Lattice discovers and visualizes all UC assets, compute resourc
 
 ## Quick Start — Deploy as a Databricks App
 
-### 1. Create a GitHub Personal Access Token
+### 1. Fork the repo
 
-Create a [fine-grained personal access token](https://github.com/settings/tokens?type=beta) with **Contents → Read-only** on the Lattice repo. You'll paste this during app setup.
+Databricks Apps requires you to deploy from a repo you own. Fork the Lattice repo to your GitHub account:
+
+1. Go to [github.com/databricks-field-eng/lattice](https://github.com/databricks-field-eng/lattice)
+2. Click **Fork** (top right) → create the fork under your account
+3. Create a [fine-grained personal access token](https://github.com/settings/tokens?type=beta) with **Contents → Read-only** on your fork
 
 ### 2. Create the app
 
@@ -240,7 +244,7 @@ In your Databricks workspace: **Compute → Apps → Create App**
 |---|---|
 | **Name** | `lattice` |
 | **Source** | Git repository |
-| **Repo URL** | `https://github.com/databricks-field-eng/lattice.git` |
+| **Repo URL** | `https://github.com/<your-username>/lattice.git` |
 | **Branch** | `main` |
 
 During setup, enter your **GitHub username + PAT** when prompted for Git credentials, and select a **SQL warehouse** (required for cost, lineage, heat, and orphan detection features).
