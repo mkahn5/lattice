@@ -4,14 +4,36 @@ Lattice is an ontology and visual intelligence platform for Databricks workspace
 
 ---
 
-## Prerequisites
+## Requirements
 
-| Requirement | Notes |
+### Minimum (canvas + topology)
+
+| Requirement | Details |
 |---|---|
-| **Unity Catalog enabled** | Required — Lattice uses UC as its data source |
-| **Databricks Apps enabled** | Requires a serverless workspace |
-| **SQL warehouse** | Required for usage stats, lineage, cost data, and annotations |
-| **GitHub account** | For cloning the repo (personal access token recommended) |
+| **Databricks workspace** | Unity Catalog enabled |
+| **Databricks Apps** | Enabled on the workspace (serverless) |
+| **Workspace access** | Permission to create Databricks Apps |
+| **GitHub PAT** | Read-only access to the Lattice repo (entered during app setup) |
+
+With just these, Lattice discovers and visualizes all UC assets, compute resources, jobs, dashboards, and apps — full topology, search, filtering, layout modes, focus view, and export.
+
+### Full features (mapped to requirements)
+
+| Feature | Requires | System table |
+|---|---|---|
+| **Canvas + topology** | Workspace + Apps | — |
+| **Search, filter, focus** | Workspace + Apps | — |
+| **Cost overlay & DBU badges** | SQL warehouse | `system.billing.usage` |
+| **Heat dots (hot/warm/cold)** | SQL warehouse | `system.query.history` |
+| **Orphan detection** | SQL warehouse | `system.query.history` |
+| **Table lineage edges** | SQL warehouse | `system.access.table_lineage` |
+| **Column-level lineage** | SQL warehouse | `system.access.column_lineage` |
+| **Job success rates** | SQL warehouse | `system.lakeflow.job_run_timeline` |
+| **Row counts & table sizes** | SQL warehouse | `system.information_schema.table_storage_utilization` |
+| **Annotations (tags & notes)** | SQL warehouse + CREATE TABLE on `lattice.metadata` | — |
+| **App sharing** | Set **Can Use** permission on the app for workspace users | — |
+
+> **Graceful degradation:** Every system table feature is optional. If a warehouse isn't configured or a grant is missing, that feature is disabled and the rest of the app works normally. Check **Settings → System Access** inside Lattice for per-feature status.
 
 ---
 

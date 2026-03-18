@@ -191,6 +191,41 @@ Lattice builds a live ontology of your Databricks environment — every Unity Ca
 
 ---
 
+## Requirements
+
+### Minimum (canvas + topology)
+
+| Requirement | Details |
+|---|---|
+| **Databricks workspace** | Unity Catalog enabled |
+| **Databricks Apps** | Enabled on the workspace (serverless) |
+| **Workspace access** | Permission to create Databricks Apps |
+| **GitHub PAT** | Read-only access to the Lattice repo |
+
+With just these, Lattice discovers and visualizes all UC assets, compute resources, jobs, dashboards, and apps — full topology, search, filtering, layout modes, focus view, and export.
+
+### Full features (mapped to requirements)
+
+| Feature | Requires | System table |
+|---|---|---|
+| **Canvas + topology** | Workspace + Apps | — |
+| **Search, filter, focus** | Workspace + Apps | — |
+| **Workspace switching** | Multiple CLI profiles or Apps | — |
+| **Catalog switching** | `USE CATALOG` on target catalogs | — |
+| **Cost overlay & DBU badges** | SQL warehouse | `system.billing.usage` |
+| **Heat dots (hot/warm/cold)** | SQL warehouse | `system.query.history` |
+| **Orphan detection** | SQL warehouse | `system.query.history` |
+| **Table lineage edges** | SQL warehouse | `system.access.table_lineage` |
+| **Column-level lineage** | SQL warehouse | `system.access.column_lineage` |
+| **Job success rates** | SQL warehouse | `system.lakeflow.job_run_timeline` |
+| **Row counts & table sizes** | SQL warehouse | `system.information_schema.table_storage_utilization` |
+| **Annotations (tags & notes)** | SQL warehouse + CREATE TABLE on `lattice.metadata` | — |
+| **App sharing** | Set **Can Use** permission on the app for workspace users | — |
+
+> **Graceful degradation:** Every system table feature is optional. If a warehouse isn't configured or a grant is missing, that feature is disabled and the rest of the app works normally. Check **Settings → System Access** inside Lattice for per-feature status.
+
+---
+
 ## Quick Start — Deploy as a Databricks App
 
 ### 1. Create a GitHub Personal Access Token
