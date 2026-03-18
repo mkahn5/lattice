@@ -62,6 +62,24 @@
 
 ---
 
+## Use Case 6: "Share this with my team." (10 seconds)
+
+**Action:** Click **Save View** → show the frozen comparison pane. Click the **PNG** export button.
+
+> "Save any view as a high-res PNG for presentations, or export CSV to share a full asset inventory with your finance team, compliance lead, or engineering manager — no Databricks access required."
+
+---
+
+## Use Case 7: "Which workspaces should we optimize?" (10 seconds)
+
+**Action:** Open the workspace switcher → show 4 workspace profiles.
+
+> "Switch between workspaces — dev, staging, production — without restarting. Compare topology, cost, and orphaned assets across environments. Export each workspace's inventory to build a cross-workspace optimization plan."
+
+**Action:** Close the dropdown.
+
+---
+
 ## Close + CTA (10 seconds)
 
 > "Lattice deploys as a Databricks App — zero infrastructure. One-click install from GitHub. Open source."
@@ -86,6 +104,8 @@ What it does:
 → Orphan detection (stale tables, no owner)
 → Activity timeline (hot/warm/cold assets)
 → Focus mode for dependency analysis
+→ Export PNG, CSV, JSON for non-technical stakeholders
+→ Multi-workspace comparison for optimization planning
 → Deploys as a native Databricks App
 
 Try it: [link in comments]
