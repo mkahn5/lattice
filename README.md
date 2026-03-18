@@ -259,18 +259,7 @@ Go to **Compute → Apps → lattice → Permissions**. Add **All workspace user
 
 Go to **Compute → Apps → lattice**. Once the status shows **Running**, click the app URL link next to the status badge to launch Lattice. The first-run wizard will guide you through catalog selection and system access checks.
 
-### Alternative: Deploy via CLI
-
-```bash
-git clone https://github.com/databricks-field-eng/lattice.git && cd lattice
-cd frontend && npm install && npm run build && cd ..
-databricks sync . /Workspace/Users/<your-email>/lattice --profile <your-profile>
-databricks apps deploy lattice \
-  --source-code-path /Workspace/Users/<your-email>/lattice \
-  --profile <your-profile>
-```
-
-### Run Locally
+### Run Locally (development)
 
 ```bash
 python3 -m venv .venv && source .venv/bin/activate
