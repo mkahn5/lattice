@@ -119,7 +119,7 @@ function CheckRow({ check, workspaceHost }: { check: PreflightCheck; workspaceHo
 }
 
 export function SettingsPanel() {
-  const { appConfig, appStatus, workspaceInfo, saveConfig, fetchConfig, fetchStatus, setShowSettings } = useGraphStore()
+  const { appConfig, appStatus, workspaceInfo, saveConfig, fetchConfig, fetchStatus, setShowSettings, setShowWizard } = useGraphStore()
 
   const [catalogs, setCatalogs] = useState<string[]>([])
   const [allCatalogs, setAllCatalogs] = useState<{ name: string }[]>([])
@@ -352,7 +352,15 @@ export function SettingsPanel() {
 
         {/* Footer */}
         <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between">
-          <p className="text-[10px] text-gray-400">Changes to scope will re-ingest the graph.</p>
+          <div className="flex items-center gap-3">
+            <p className="text-[10px] text-gray-400">Changes to scope will re-ingest the graph.</p>
+            <button
+              onClick={() => { setShowSettings(false); setShowWizard(true) }}
+              className="text-[10px] text-indigo-500 hover:text-indigo-700 transition-colors whitespace-nowrap"
+            >
+              Run setup wizard
+            </button>
+          </div>
           <div className="flex items-center gap-2">
             {saved && <span className="text-[10px] text-green-600 font-medium">✓ Saved</span>}
             <button

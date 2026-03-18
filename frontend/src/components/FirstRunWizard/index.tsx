@@ -187,6 +187,10 @@ export function FirstRunWizard() {
     )
   }
 
+  const markWizardComplete = () => {
+    fetch('/api/config/wizard-complete', { method: 'POST' }).catch(() => {})
+  }
+
   const handleFinish = async () => {
     setSaving(true)
     const p = PRESETS.find(p => p.key === preset) ?? PRESETS[1]
@@ -195,11 +199,15 @@ export function FirstRunWizard() {
       schema_limit: p.schema_limit || undefined,
       table_limit: p.table_limit || undefined,
     })
+    markWizardComplete()
     setSaving(false)
     setShowWizard(false)
   }
 
-  const handleSkip = () => setShowWizard(false)
+  const handleSkip = () => {
+    markWizardComplete()
+    setShowWizard(false)
+  }
 
   const allChecksOk = appStatus?.ready && appStatus.checks.every(c => c.ok !== false)
   const criticalFailed = appStatus?.ready && appStatus.checks.find(c => c.key === 'workspace' && !c.ok)

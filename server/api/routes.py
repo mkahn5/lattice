@@ -251,8 +251,16 @@ def get_config():
         "schema_limit": cfg.get("schema_limit", int(os.environ.get("LATTICE_SCHEMA_LIMIT", "20"))),
         "table_limit": cfg.get("table_limit", int(os.environ.get("LATTICE_TABLE_LIMIT", "50"))),
         "warehouse_id": cfg.get("warehouse_id", os.environ.get("DATABRICKS_WAREHOUSE_ID", "")),
-        "is_first_run": not os.path.exists(CONFIG_PATH),
+        "is_first_run": not os.path.exists(CONFIG_PATH) and not cfg.get("wizard_completed"),
     }
+
+
+@router.post("/api/config/wizard-complete")
+def mark_wizard_complete():
+    """Mark the setup wizard as completed so it doesn't show again on restart."""
+    from server.config import save_app_config
+    save_app_config({"wizard_completed": True})
+    return {"ok": True}
 
 
 class ConfigBody(BaseModel):
