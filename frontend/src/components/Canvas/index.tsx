@@ -1164,12 +1164,12 @@ export function Canvas() {
                   // Force re-render by bumping prevHardResetKey to trigger layout recompute
                   prevHardResetKey.current = ''
                 }}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-amber-50 border border-amber-300 text-amber-700 rounded-lg shadow-sm hover:bg-amber-100 transition-all animate-pulse"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-amber-50 border border-amber-300 text-amber-700 rounded-lg shadow-sm hover:bg-amber-100 transition-all"
               >
                 <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                   <path d="M6 1v4l2.5 1.5M11 6a5 5 0 11-10 0 5 5 0 0110 0z" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
                 </svg>
-                Re-layout filtered view
+                Reset layout of filtered view
               </button>
             )}
 
