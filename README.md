@@ -216,7 +216,11 @@ On many workspaces, the app service principal inherits system table access autom
 
 If features show as unavailable, an **account admin** can grant access to the `system` catalog. See [INSTALL.md](INSTALL.md) for the full grant SQL. This step can be skipped — the canvas and all core features work without it.
 
-### 4. Open Lattice
+### 4. Set app permissions
+
+Go to **Compute → Apps → lattice → Permissions**. Add **All workspace users** with the **Can Use** role to share Lattice across your organization. Without this, only the app creator can access it.
+
+### 5. Open Lattice
 
 Go to **Compute → Apps → lattice**. Once the status shows **Running**, click the app URL link next to the status badge to launch Lattice. The first-run wizard will guide you through catalog selection and system access checks.
 

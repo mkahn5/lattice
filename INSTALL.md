@@ -112,6 +112,17 @@ GRANT SELECT ON TABLE system.lakeflow.job_run_timeline TO `<principal>`;
 
 Go to **Compute → Apps → lattice**. Once the status shows **Running**, click the app URL link next to the status badge to launch Lattice.
 
+### Step 6: Set App Permissions
+
+By default, only the app creator can access Lattice. To share it across your organization:
+
+1. Go to **Compute → Apps → lattice → Permissions**
+2. Click **Add**
+3. Select **All workspace users** and set the role to **Can Use**
+4. Click **Save**
+
+This allows anyone in the workspace to open and use Lattice.
+
 On first launch, Lattice runs a setup wizard:
 1. **Welcome** — explains what Lattice maps
 2. **Catalog scope** — select which catalogs to include (or use all)
