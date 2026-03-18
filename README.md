@@ -191,21 +191,53 @@ Lattice builds a live ontology of your Databricks environment — every Unity Ca
 
 ---
 
-## Quick Start
+## Quick Start — Deploy as a Databricks App
 
-### Deploy to Databricks
+### 1. Set up GitHub access
+
+Create a [fine-grained personal access token](https://github.com/settings/tokens?type=beta) with **Contents → Read-only** on the Lattice repo. Then add it to your Databricks workspace under **Settings → Developer → Git credentials**.
+
+### 2. Create the app
+
+In your Databricks workspace: **Compute → Apps → Create App**
+
+| Setting | Value |
+|---|---|
+| **Name** | `lattice` |
+| **Source** | Git repository |
+| **Repo URL** | `https://github.com/databricks-field-eng/lattice.git` |
+| **Branch** | `main` |
+
+During setup, you'll be prompted to select a **SQL warehouse** — this injects `DATABRICKS_WAREHOUSE_ID` automatically. Pick any running warehouse (required for cost, lineage, heat, and orphan detection features).
+
+### 3. Grant system table access
+
+Run as workspace admin in the SQL Editor (replace `<principal>` with the app service principal):
+
+```sql
+GRANT USE CATALOG ON CATALOG system TO `<principal>`;
+GRANT USE SCHEMA ON SCHEMA system.billing TO `<principal>`;
+GRANT SELECT ON TABLE system.billing.usage TO `<principal>`;
+GRANT USE SCHEMA ON SCHEMA system.query TO `<principal>`;
+GRANT SELECT ON TABLE system.query.history TO `<principal>`;
+GRANT USE SCHEMA ON SCHEMA system.access TO `<principal>`;
+GRANT SELECT ON TABLE system.access.table_lineage TO `<principal>`;
+GRANT USE SCHEMA ON SCHEMA system.lakeflow TO `<principal>`;
+GRANT SELECT ON TABLE system.lakeflow.job_run_timeline TO `<principal>`;
+```
+
+> These grants are optional — the canvas works without them. System-table features degrade gracefully.
+
+### 4. Open Lattice
+
+Navigate to `https://<workspace-host>/apps/lattice`. The first-run wizard will guide you through catalog selection and system access checks.
+
+### Alternative: Deploy via CLI
 
 ```bash
-# 1. Clone the repo
-git clone <repo-url> lattice && cd lattice
-
-# 2. Build the frontend
+git clone https://github.com/databricks-field-eng/lattice.git && cd lattice
 cd frontend && npm install && npm run build && cd ..
-
-# 3. Sync to workspace
 databricks sync . /Workspace/Users/<your-email>/lattice --profile <your-profile>
-
-# 4. Deploy the app
 databricks apps deploy lattice \
   --source-code-path /Workspace/Users/<your-email>/lattice \
   --profile <your-profile>
@@ -214,7 +246,6 @@ databricks apps deploy lattice \
 ### Run Locally
 
 ```bash
-# Backend
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 export DATABRICKS_PROFILE=my-workspace
@@ -225,7 +256,7 @@ cd frontend && npm install && npm run dev
 # Open http://localhost:5173
 ```
 
-See [INSTALL.md](INSTALL.md) for full setup details including SQL warehouse configuration, required grants, and environment variables.
+See [INSTALL.md](INSTALL.md) for full setup details including warehouse configuration options, all required grants, and environment variables.
 
 ---
 
