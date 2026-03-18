@@ -459,12 +459,14 @@ export function Canvas() {
   const { fitView, setCenter, getViewport } = useReactFlow()
 
   // Preserve manual node positions across incremental changes.
-  // Cleared on hard resets: layout mode, view mode, search, or type filter change.
+  // Cleared on hard resets — but only when the user hasn't manually arranged nodes.
   const savedPositions = useRef<Map<string, { x: number; y: number }>>(new Map())
   const filterTypesKey = useMemo(() => [...filterTypes].sort().join(','), [filterTypes])
   const hardResetKey = `${viewMode}|${layoutMode}|${searchQuery}|${filterTypesKey}`
   const prevHardResetKey = useRef('')
   const initialFitDone = useRef(false)
+  // When true, filter/search changes skip hard reset and show a nudge instead
+  const [filterChangedWhileModified, setFilterChangedWhileModified] = useState(false)
 
   // Table counts per schema (for collapsed badge)
   const tableCountBySchema = useMemo(() => {
@@ -512,10 +514,17 @@ export function Canvas() {
   useEffect(() => {
     if (!latticeNodes.length) return
 
-    // Hard reset: clear saved positions when layout mode or view mode changes
+    // Hard reset: clear saved positions when layout/view/filter changes
     if (hardResetKey !== prevHardResetKey.current) {
-      prevHardResetKey.current = hardResetKey
-      savedPositions.current.clear()
+      if (userModifiedLayout.current) {
+        // User has manually arranged nodes — don't reset, just show nudge
+        prevHardResetKey.current = hardResetKey
+        setFilterChangedWhileModified(true)
+      } else {
+        prevHardResetKey.current = hardResetKey
+        savedPositions.current.clear()
+        setFilterChangedWhileModified(false)
+      }
     }
 
     // Always compute fresh layout positions (used as fallback for new nodes)
@@ -1143,6 +1152,26 @@ export function Canvas() {
               </span>
             </div>
             </div>
+
+            {/* Filter nudge — shown when filter changed but user has arranged nodes */}
+            {filterChangedWhileModified && (
+              <button
+                onClick={() => {
+                  savedPositions.current.clear()
+                  userModifiedLayout.current = false
+                  setFilterChangedWhileModified(false)
+                  setLayoutModified(false)
+                  // Force re-render by bumping prevHardResetKey to trigger layout recompute
+                  prevHardResetKey.current = ''
+                }}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-amber-50 border border-amber-300 text-amber-700 rounded-lg shadow-sm hover:bg-amber-100 transition-all animate-pulse"
+              >
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <path d="M6 1v4l2.5 1.5M11 6a5 5 0 11-10 0 5 5 0 0110 0z" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+                </svg>
+                Re-layout filtered view
+              </button>
+            )}
 
             {/* Layout mode */}
             <div className="flex flex-col items-start gap-0.5">
