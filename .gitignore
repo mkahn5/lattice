@@ -12,4 +12,3 @@ npm-debug.log*
 .DS_Store
 .cache/
 lattice_config.json
-frontend/dist/
