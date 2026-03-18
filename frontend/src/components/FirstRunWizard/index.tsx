@@ -272,6 +272,18 @@ export function FirstRunWizard() {
               <div className="mt-5 p-3 bg-indigo-50 rounded-lg text-[11px] text-indigo-700 leading-relaxed">
                 This setup takes about 60–90 seconds. You can skip it and configure everything later in <strong>Settings</strong>.
               </div>
+              <div className="mt-3 p-3 bg-gray-50 rounded-lg text-[11px] text-gray-500 leading-relaxed flex items-center justify-between">
+                <span>Check for the latest version, docs, and release notes:</span>
+                <a
+                  href="https://github.com/databricks-field-eng/lattice"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-indigo-500 hover:text-indigo-700 font-medium flex items-center gap-1"
+                >
+                  GitHub
+                  <ExternalLink size={10} />
+                </a>
+              </div>
             </div>
           )}
 
