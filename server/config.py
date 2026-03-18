@@ -84,6 +84,11 @@ def _get_token_for_profile(profile: str, host: str) -> str | None:
     return None
 
 
+def get_stored_profiles() -> dict:
+    """Return Lattice-managed profiles from lattice_config.json."""
+    return load_app_config().get("profiles", {})
+
+
 def get_workspace_client() -> WorkspaceClient:
     # In Databricks App: auto-injected credentials
     if os.environ.get("DATABRICKS_APP_NAME"):
@@ -95,8 +100,17 @@ def get_workspace_client() -> WorkspaceClient:
     if host and token:
         return WorkspaceClient(host=host, token=token)
 
-    # Profile-based: extract token via CLI to avoid SDK OAuth browser hang
+    # Profile-based
     profile = os.environ.get("DATABRICKS_PROFILE", "e2-demo-west")
+
+    # Check Lattice-stored profiles first (PAT-based, managed in Settings UI)
+    stored = get_stored_profiles()
+    if profile in stored:
+        sp = stored[profile]
+        if sp.get("host") and sp.get("token"):
+            return WorkspaceClient(host=sp["host"], token=sp["token"])
+
+    # Fall back to ~/.databrickscfg (OAuth via CLI)
     try:
         import configparser
         cfg = configparser.ConfigParser()

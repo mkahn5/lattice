@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useGraphStore, type PreflightCheck } from '../../stores/graphStore'
-import { CheckCircle, XCircle, Loader, RefreshCw, ChevronDown, ChevronUp, X, Copy, Check, ExternalLink } from 'lucide-react'
-// ChevronDown/ChevronUp used in collapsible scope/status sections
+import { CheckCircle, XCircle, Loader, RefreshCw, ChevronDown, ChevronUp, X, Copy, Check, ExternalLink, Plus, Pencil, Trash2, FlaskConical, Globe } from 'lucide-react'
 
 const PRESETS = [
   { key: 'small',  label: 'S',  schema_limit: 10,  table_limit: 20 },
@@ -126,6 +125,98 @@ function useVersionInfo() {
   return info
 }
 
+interface ProfileEntry {
+  name: string
+  host: string
+  active: boolean
+  source: 'lattice' | 'databrickscfg'
+}
+
+interface ProfileFormProps {
+  form: { name: string; host: string; token: string }
+  setForm: (f: { name: string; host: string; token: string }) => void
+  testResult: { ok: boolean; user?: string; error?: string } | null
+  testing: boolean
+  saving: boolean
+  isEdit?: boolean
+  onTest: () => void
+  onSave: () => void
+  onCancel: () => void
+}
+
+function ProfileForm({ form, setForm, testResult, testing, saving, isEdit, onTest, onSave, onCancel }: ProfileFormProps) {
+  const canTest = form.host.startsWith('https://') && form.token.length > 5
+  const canSave = form.name.length > 0 && form.host.startsWith('https://') && (isEdit || form.token.length > 5)
+
+  return (
+    <div className="border border-indigo-200 bg-indigo-50/30 rounded-lg p-3 space-y-2">
+      <div>
+        <label className="text-[10px] text-gray-500 block mb-0.5">Profile name</label>
+        <input
+          type="text"
+          value={form.name}
+          onChange={e => setForm({ ...form, name: e.target.value })}
+          disabled={isEdit}
+          placeholder="my-workspace"
+          className="w-full border border-gray-200 rounded px-2 py-1 text-[11px] focus:outline-none focus:ring-1 focus:ring-indigo-400 disabled:bg-gray-100 disabled:text-gray-500"
+        />
+      </div>
+      <div>
+        <label className="text-[10px] text-gray-500 block mb-0.5">Host URL</label>
+        <input
+          type="text"
+          value={form.host}
+          onChange={e => setForm({ ...form, host: e.target.value })}
+          placeholder="https://my-workspace.cloud.databricks.com"
+          className="w-full border border-gray-200 rounded px-2 py-1 text-[11px] font-mono focus:outline-none focus:ring-1 focus:ring-indigo-400"
+        />
+      </div>
+      <div>
+        <label className="text-[10px] text-gray-500 block mb-0.5">
+          Personal Access Token {isEdit && <span className="text-gray-400">(leave blank to keep current)</span>}
+        </label>
+        <input
+          type="password"
+          value={form.token}
+          onChange={e => setForm({ ...form, token: e.target.value })}
+          placeholder={isEdit ? '••••••••' : 'dapi...'}
+          className="w-full border border-gray-200 rounded px-2 py-1 text-[11px] font-mono focus:outline-none focus:ring-1 focus:ring-indigo-400"
+        />
+      </div>
+      <div className="flex items-center justify-between pt-1">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={onTest}
+            disabled={!canTest || testing}
+            className="flex items-center gap-1 text-[10px] text-indigo-600 hover:text-indigo-800 disabled:text-gray-400 disabled:cursor-not-allowed font-medium transition-colors"
+          >
+            {testing ? <Loader size={9} className="animate-spin" /> : <FlaskConical size={9} />}
+            {testing ? 'Testing…' : 'Test connection'}
+          </button>
+          {testResult && (
+            <span className={`text-[9px] ${testResult.ok ? 'text-green-600' : 'text-red-500'}`}>
+              {testResult.ok ? `✓ Connected as ${testResult.user}` : `✕ ${testResult.error}`}
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          <button onClick={onCancel} className="text-[10px] text-gray-500 hover:text-gray-700 transition-colors">
+            Cancel
+          </button>
+          <button
+            onClick={onSave}
+            disabled={!canSave || saving}
+            className="px-3 py-1 text-[10px] font-medium bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:opacity-50 transition-all flex items-center gap-1"
+          >
+            {saving && <Loader size={9} className="animate-spin" />}
+            {isEdit ? 'Update' : 'Save'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export function SettingsPanel() {
   const { appConfig, appStatus, workspaceInfo, saveConfig, fetchConfig, fetchStatus, setShowSettings, setShowWizard } = useGraphStore()
   const versionInfo = useVersionInfo()
@@ -142,11 +233,27 @@ export function SettingsPanel() {
   const [scopeSection, setScopeSection] = useState(true)
   const loadedRef = useRef(false)
 
+  // Workspace Profiles state
+  const [profiles, setProfiles] = useState<ProfileEntry[]>([])
+  const [profilesSection, setProfilesSection] = useState(true)
+  const [addingProfile, setAddingProfile] = useState(false)
+  const [editingProfile, setEditingProfile] = useState<string | null>(null)
+  const [profileForm, setProfileForm] = useState({ name: '', host: '', token: '' })
+  const [testResult, setTestResult] = useState<{ ok: boolean; user?: string; error?: string } | null>(null)
+  const [testing, setTesting] = useState(false)
+  const [profileSaving, setProfileSaving] = useState(false)
+  const [deletingProfile, setDeletingProfile] = useState<string | null>(null)
+
+  const loadProfiles = () => {
+    fetch('/api/profiles').then(r => r.json()).then(d => setProfiles(d.profiles ?? [])).catch(() => {})
+  }
+
   useEffect(() => {
     if (!loadedRef.current) {
       loadedRef.current = true
       fetchConfig()
       fetchStatus()
+      loadProfiles()
     }
   }, [])
 
@@ -249,6 +356,151 @@ export function SettingsPanel() {
               <code className="font-mono">app.yaml</code> when running as a Databricks App.
               For local dev, set <code className="font-mono">DATABRICKS_PROFILE</code> in your environment.
             </div>
+          </div>
+
+          {/* ── Workspace Profiles ── */}
+          <div className="px-6 py-4 border-b border-gray-50">
+            <div className="flex items-center justify-between mb-1">
+              <button
+                onClick={() => setProfilesSection(v => !v)}
+                className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider flex items-center gap-1"
+              >
+                Workspace profiles {profilesSection ? <ChevronUp size={11} /> : <ChevronDown size={11} />}
+              </button>
+              {profilesSection && !addingProfile && !editingProfile && (
+                <button
+                  onClick={() => { setAddingProfile(true); setProfileForm({ name: '', host: '', token: '' }); setTestResult(null) }}
+                  className="flex items-center gap-1 text-[10px] text-indigo-600 hover:text-indigo-800 transition-colors font-medium"
+                >
+                  <Plus size={10} /> Add
+                </button>
+              )}
+            </div>
+
+            {profilesSection && (
+              <div className="mt-2 space-y-1.5">
+                {/* Profile list */}
+                {profiles.length === 0 && !addingProfile && (
+                  <p className="text-[10px] text-gray-400 py-1">No profiles configured. Add one to connect to a workspace.</p>
+                )}
+
+                {profiles.map(p => {
+                  if (editingProfile === p.name) {
+                    return (
+                      <ProfileForm
+                        key={p.name}
+                        form={profileForm}
+                        setForm={setProfileForm}
+                        testResult={testResult}
+                        testing={testing}
+                        saving={profileSaving}
+                        isEdit
+                        onTest={async () => {
+                          setTesting(true); setTestResult(null)
+                          try {
+                            const r = await fetch('/api/profiles/test', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(profileForm) })
+                            setTestResult(await r.json())
+                          } catch { setTestResult({ ok: false, error: 'Network error' }) }
+                          setTesting(false)
+                        }}
+                        onSave={async () => {
+                          setProfileSaving(true)
+                          try {
+                            const r = await fetch('/api/profiles', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(profileForm) })
+                            if (r.ok) { loadProfiles(); setEditingProfile(null); setTestResult(null) }
+                          } catch {}
+                          setProfileSaving(false)
+                        }}
+                        onCancel={() => { setEditingProfile(null); setTestResult(null) }}
+                      />
+                    )
+                  }
+
+                  return (
+                    <div key={p.name} className={`flex items-center gap-2 px-3 py-2 rounded-lg border ${p.active ? 'border-indigo-200 bg-indigo-50/50' : 'border-gray-100 bg-gray-50/30'}`}>
+                      <Globe size={10} className={`shrink-0 ${p.active ? 'text-indigo-500' : 'text-gray-400'}`} />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <span className={`text-[11px] font-medium ${p.active ? 'text-indigo-700' : 'text-gray-700'}`}>{p.name}</span>
+                          {p.active && <span className="text-[8px] bg-indigo-100 text-indigo-600 px-1 py-0.5 rounded font-medium">ACTIVE</span>}
+                          <span className={`text-[8px] px-1 py-0.5 rounded ${p.source === 'lattice' ? 'bg-amber-50 text-amber-600' : 'bg-gray-100 text-gray-500'}`}>
+                            {p.source === 'lattice' ? 'PAT' : 'CLI'}
+                          </span>
+                        </div>
+                        <div className="text-[9px] text-gray-400 truncate">{p.host}</div>
+                      </div>
+                      {p.source === 'lattice' && (
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button
+                            onClick={() => { setEditingProfile(p.name); setProfileForm({ name: p.name, host: p.host, token: '' }); setTestResult(null) }}
+                            className="p-1 text-gray-400 hover:text-indigo-600 rounded hover:bg-indigo-50 transition-all"
+                            title="Edit profile"
+                          >
+                            <Pencil size={10} />
+                          </button>
+                          {deletingProfile === p.name ? (
+                            <div className="flex items-center gap-1">
+                              <button
+                                onClick={async () => {
+                                  await fetch(`/api/profiles/${encodeURIComponent(p.name)}`, { method: 'DELETE' })
+                                  loadProfiles(); setDeletingProfile(null)
+                                }}
+                                className="text-[9px] text-red-600 hover:text-red-800 font-medium"
+                              >
+                                Confirm
+                              </button>
+                              <button onClick={() => setDeletingProfile(null)} className="text-[9px] text-gray-400 hover:text-gray-600">
+                                Cancel
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => setDeletingProfile(p.name)}
+                              className="p-1 text-gray-400 hover:text-red-500 rounded hover:bg-red-50 transition-all"
+                              title="Delete profile"
+                            >
+                              <Trash2 size={10} />
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+
+                {/* Add profile form */}
+                {addingProfile && (
+                  <ProfileForm
+                    form={profileForm}
+                    setForm={setProfileForm}
+                    testResult={testResult}
+                    testing={testing}
+                    saving={profileSaving}
+                    onTest={async () => {
+                      setTesting(true); setTestResult(null)
+                      try {
+                        const r = await fetch('/api/profiles/test', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(profileForm) })
+                        setTestResult(await r.json())
+                      } catch { setTestResult({ ok: false, error: 'Network error' }) }
+                      setTesting(false)
+                    }}
+                    onSave={async () => {
+                      setProfileSaving(true)
+                      try {
+                        const r = await fetch('/api/profiles', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(profileForm) })
+                        if (r.ok) { loadProfiles(); setAddingProfile(false); setProfileForm({ name: '', host: '', token: '' }); setTestResult(null) }
+                      } catch {}
+                      setProfileSaving(false)
+                    }}
+                    onCancel={() => { setAddingProfile(false); setTestResult(null) }}
+                  />
+                )}
+
+                <p className="text-[9px] text-gray-400 leading-relaxed pt-1">
+                  Add workspace profiles with a Personal Access Token. CLI profiles from <code className="font-mono">~/.databrickscfg</code> are also listed (read-only).
+                </p>
+              </div>
+            )}
           </div>
 
           {/* ── Scope ── */}

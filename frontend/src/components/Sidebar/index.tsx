@@ -766,7 +766,7 @@ const TYPE_COLORS: Record<NodeType, string> = {
 const UC_TYPES = new Set(['Catalog', 'Schema', 'Table', 'View', 'Model', 'Volume', 'StreamingTable', 'MaterializedView', 'Database', 'ForeignCatalog', 'Connection', 'Share', 'Recipient'])
 const COMPUTE_TYPES = new Set(['Warehouse', 'Serverless', 'Cluster', 'Job', 'Dashboard', 'App', 'Pipeline'])
 
-interface Profile { name: string; host: string; active: boolean }
+interface Profile { name: string; host: string; active: boolean; source?: 'lattice' | 'databrickscfg' }
 interface CatalogInfo { name: string; type: string; active: boolean }
 
 function pollUntilReady(onReady: () => void, onDone: () => void) {
@@ -848,6 +848,9 @@ function ProfileSwitcher({ onSwitching }: { onSwitching: (v: boolean) => void })
               >
                 <span className={`font-medium ${p.active ? 'text-indigo-700' : 'text-gray-700'}`}>
                   {p.name} {p.active && <span className="text-[10px] font-normal text-indigo-400">active</span>}
+                  {' '}<span className={`text-[8px] px-1 py-0.5 rounded ${p.source === 'lattice' ? 'bg-amber-50 text-amber-600' : 'bg-gray-100 text-gray-400'}`}>
+                    {p.source === 'lattice' ? 'PAT' : 'CLI'}
+                  </span>
                 </span>
                 <span className="text-[10px] text-gray-400 truncate">{p.host}</span>
               </button>

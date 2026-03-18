@@ -135,24 +135,103 @@ def get_cost():
 
 @router.get("/api/profiles")
 def get_profiles():
-    """List available Databricks CLI profiles."""
+    """List available profiles from Lattice config and ~/.databrickscfg."""
     import configparser
+    from server.config import get_stored_profiles
+
     profiles = []
+    seen_names: set[str] = set()
+    current = os.environ.get("DATABRICKS_PROFILE", "")
+
+    # Lattice-stored profiles first (editable in Settings)
+    for name, data in get_stored_profiles().items():
+        profiles.append({
+            "name": name,
+            "host": data.get("host", ""),
+            "active": name == current,
+            "source": "lattice",
+        })
+        seen_names.add(name)
+
+    # Then ~/.databrickscfg profiles (read-only from UI)
     cfg_path = os.path.expanduser("~/.databrickscfg")
     try:
         cfg = configparser.ConfigParser()
         cfg.read(cfg_path)
-        current = os.environ.get("DATABRICKS_PROFILE", "")
         for name in cfg.sections():
-            host = cfg[name].get("host", "")
-            profiles.append({
-                "name": name,
-                "host": host,
-                "active": name == current,
-            })
+            if name not in seen_names:
+                profiles.append({
+                    "name": name,
+                    "host": cfg[name].get("host", ""),
+                    "active": name == current,
+                    "source": "databrickscfg",
+                })
     except Exception as e:
         print(f"[profiles] error: {e}")
-    return {"profiles": profiles, "active": os.environ.get("DATABRICKS_PROFILE", "")}
+
+    return {"profiles": profiles, "active": current}
+
+
+class ProfileBody(BaseModel):
+    name: str
+    host: str
+    token: str = ""
+
+    @field_validator("name")
+    @classmethod
+    def validate_name(cls, v):
+        from server.config import _PROFILE_RE
+        if not _PROFILE_RE.match(v):
+            raise ValueError("Profile name must be alphanumeric/hyphens/underscores/dots, max 128 chars")
+        return v
+
+    @field_validator("host")
+    @classmethod
+    def validate_host(cls, v):
+        from server.config import _HOST_RE
+        if not _HOST_RE.match(v):
+            raise ValueError("Host must be an https:// URL")
+        return v
+
+
+@router.post("/api/profiles")
+def upsert_profile(body: ProfileBody):
+    """Create or update a Lattice-managed workspace profile."""
+    from server.config import get_stored_profiles, save_app_config
+    profiles = get_stored_profiles()
+    existing = profiles.get(body.name, {})
+    token = body.token if body.token else existing.get("token", "")
+    if not token:
+        raise HTTPException(status_code=400, detail="Token is required for new profiles")
+    profiles[body.name] = {"host": body.host, "token": token}
+    save_app_config({"profiles": profiles})
+    return {"ok": True, "name": body.name}
+
+
+@router.delete("/api/profiles/{name}")
+def delete_profile(name: str):
+    """Delete a Lattice-managed workspace profile."""
+    from server.config import get_stored_profiles, save_app_config
+    profiles = get_stored_profiles()
+    if name not in profiles:
+        raise HTTPException(status_code=404, detail="Profile not found in Lattice config")
+    del profiles[name]
+    save_app_config({"profiles": profiles})
+    if os.environ.get("DATABRICKS_PROFILE") == name:
+        os.environ.pop("DATABRICKS_PROFILE", None)
+    return {"ok": True}
+
+
+@router.post("/api/profiles/test")
+def test_profile(body: ProfileBody):
+    """Test that profile credentials can connect to the workspace."""
+    try:
+        from databricks.sdk import WorkspaceClient
+        w = WorkspaceClient(host=body.host, token=body.token)
+        user = w.current_user.me()
+        return {"ok": True, "user": user.user_name}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
 
 
 @router.get("/api/catalogs")
@@ -202,10 +281,14 @@ async def switch_profile(body: dict):
 
     # Profile is optional — if omitted, keep current
     if profile:
-        cfg = configparser.ConfigParser()
-        cfg.read(os.path.expanduser("~/.databrickscfg"))
-        if profile not in cfg:
-            raise HTTPException(status_code=404, detail=f"Profile '{profile}' not found in ~/.databrickscfg")
+        from server.config import get_stored_profiles
+        stored = get_stored_profiles()
+        if profile not in stored:
+            # Fall back to ~/.databrickscfg
+            cfg = configparser.ConfigParser()
+            cfg.read(os.path.expanduser("~/.databrickscfg"))
+            if profile not in cfg:
+                raise HTTPException(status_code=404, detail=f"Profile '{profile}' not found")
         os.environ["DATABRICKS_PROFILE"] = profile
 
     os.environ["LATTICE_CATALOGS"] = catalog
