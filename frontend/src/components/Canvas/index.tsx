@@ -460,7 +460,7 @@ export function Canvas() {
   // Preserve manual node positions across incremental filter changes.
   // Cleared only on hard resets (layout mode / view mode change).
   const savedPositions = useRef<Map<string, { x: number; y: number }>>(new Map())
-  const hardResetKey = `${viewMode}|${layoutMode}`
+  const hardResetKey = `${viewMode}|${layoutMode}|${searchQuery}`
   const prevHardResetKey = useRef('')
   const initialFitDone = useRef(false)
 
@@ -694,8 +694,8 @@ export function Canvas() {
   // On view/layout hard reset: schedule zoom 150ms out so React has time to
   // re-render with the new node set before we read rfNodesRef.current
   const filterKey = useMemo(
-    () => `${viewMode}|${layoutMode}|${[...filterTypes].sort().join(',')}|${[...collapsedSchemas].sort().join(',')}`,
-    [viewMode, layoutMode, filterTypes, collapsedSchemas],
+    () => `${viewMode}|${layoutMode}|${searchQuery}|${[...filterTypes].sort().join(',')}|${[...collapsedSchemas].sort().join(',')}`,
+    [viewMode, layoutMode, searchQuery, filterTypes, collapsedSchemas],
   )
   // Separate ref so the layout effect updating prevHardResetKey doesn't interfere
   const prevHardResetKeyForZoom = useRef('')
@@ -720,6 +720,16 @@ export function Canvas() {
     return () => clearTimeout(t)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rfNodesLen, latticeEdgesLen, zoomToTopCluster])
+
+  // Fit view to search results when search query changes
+  const prevSearchQuery = useRef('')
+  useEffect(() => {
+    if (searchQuery === prevSearchQuery.current) return
+    prevSearchQuery.current = searchQuery
+    if (!searchQuery || rfNodes.length === 0) return
+    const t = setTimeout(() => fitView({ padding: 0.15, duration: 400 }), 200)
+    return () => clearTimeout(t)
+  }, [searchQuery, rfNodes.length, fitView])
 
   // Fit view to highlighted nodes when highlight mode activates
   useEffect(() => {
