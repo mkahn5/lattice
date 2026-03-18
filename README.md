@@ -210,23 +210,11 @@ In your Databricks workspace: **Compute → Apps → Create App**
 
 During setup, enter your **GitHub username + PAT** when prompted for Git credentials, and select a **SQL warehouse** (required for cost, lineage, heat, and orphan detection features).
 
-### 3. Grant system table access
+### 3. Check system table access (optional)
 
-Run as workspace admin in the SQL Editor (replace `<principal>` with the app service principal):
+On many workspaces, the app service principal inherits system table access automatically — no explicit grants needed. After launch, check **Settings → System Access** inside Lattice to see which features are active.
 
-```sql
-GRANT USE CATALOG ON CATALOG system TO `<principal>`;
-GRANT USE SCHEMA ON SCHEMA system.billing TO `<principal>`;
-GRANT SELECT ON TABLE system.billing.usage TO `<principal>`;
-GRANT USE SCHEMA ON SCHEMA system.query TO `<principal>`;
-GRANT SELECT ON TABLE system.query.history TO `<principal>`;
-GRANT USE SCHEMA ON SCHEMA system.access TO `<principal>`;
-GRANT SELECT ON TABLE system.access.table_lineage TO `<principal>`;
-GRANT USE SCHEMA ON SCHEMA system.lakeflow TO `<principal>`;
-GRANT SELECT ON TABLE system.lakeflow.job_run_timeline TO `<principal>`;
-```
-
-> These grants are optional — the canvas works without them. System-table features degrade gracefully.
+If features show as unavailable, an **account admin** can grant access to the `system` catalog. See [INSTALL.md](INSTALL.md) for the full grant SQL. This step can be skipped — the canvas and all core features work without it.
 
 ### 4. Open Lattice
 

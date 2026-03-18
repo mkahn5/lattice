@@ -82,13 +82,13 @@ The included `app.yaml` also declares a `sql-warehouse` resource with `id: auto`
 
 ### Step 4: Grant System Table Access
 
-Run these as a **workspace admin** in the SQL Editor. Replace `<principal>` with the Databricks App service principal name.
+On many workspaces, the app service principal inherits system table access through group membership — **no explicit grants needed**. Check **Settings → System Access** inside Lattice after launch to see which features are active.
+
+If system table features show as unavailable, an **account admin** (not just workspace admin) can run these grants. Replace `<principal>` with the app service principal name or UUID.
 
 ```sql
--- Required: system table access for full feature set
-GRANT USE CATALOG ON CATALOG system TO `<principal>`;
-
 -- Cost overlay & DBU badges
+GRANT USE CATALOG ON CATALOG system TO `<principal>`;
 GRANT USE SCHEMA ON SCHEMA system.billing TO `<principal>`;
 GRANT SELECT ON TABLE system.billing.usage TO `<principal>`;
 
@@ -106,7 +106,7 @@ GRANT USE SCHEMA ON SCHEMA system.lakeflow TO `<principal>`;
 GRANT SELECT ON TABLE system.lakeflow.job_run_timeline TO `<principal>`;
 ```
 
-> **These grants are optional.** The app works without them — the canvas and UC browsing are fully functional. System-table-powered features (heat dots, cost overlay, lineage edges, orphan detection) will show "requires system table access" messages until grants are in place.
+> **Note:** Granting on the `system` catalog requires the **account admin** role, not just workspace admin. If you get `PERMISSION_DENIED: User is not an account admin`, ask your account admin to run the grants — or skip this step entirely if the features are already working.
 
 ### Step 5: Open Lattice
 
