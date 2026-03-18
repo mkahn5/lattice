@@ -19,7 +19,7 @@ Lattice is an ontology and visual intelligence platform for Databricks workspace
 
 ### Step 1: Create a GitHub Personal Access Token
 
-Lattice source code is hosted on GitHub. You'll need a personal access token (PAT) to connect the repo to your Databricks workspace.
+Lattice source code is hosted on GitHub. You'll need a personal access token (PAT) to connect the repo during app setup.
 
 1. Go to **GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens**
 2. Click **Generate new token**
@@ -30,17 +30,7 @@ Lattice source code is hosted on GitHub. You'll need a personal access token (PA
    - **Permissions:** Contents → Read-only
 4. Click **Generate token** and copy the value
 
-### Step 2: Add GitHub Credentials to Databricks
-
-1. In your Databricks workspace, go to **Settings → Developer → Git credentials**
-2. Click **Add credential**
-3. Set:
-   - **Git provider:** GitHub
-   - **Username:** your GitHub username
-   - **Token:** paste the PAT from Step 1
-4. Click **Save**
-
-### Step 3: Create the Databricks App
+### Step 2: Create the Databricks App
 
 **Option A: From the Databricks UI**
 
@@ -51,9 +41,10 @@ Lattice source code is hosted on GitHub. You'll need a personal access token (PA
 3. Under **Source**, select **Git repository**
 4. Enter the repo URL: `https://github.com/databricks-field-eng/lattice.git`
 5. Set the branch to `main`
-6. Click **Create**
+6. When prompted for Git credentials, enter your **GitHub username** and paste the **PAT** from Step 1
+7. Click **Create**
 
-**Option B: From the Databricks CLI**
+**Option B: From the Databricks CLI (alternative)**
 
 ```bash
 # Authenticate to your workspace
@@ -72,7 +63,7 @@ databricks apps deploy lattice \
   --profile my-workspace
 ```
 
-### Step 4: Configure the SQL Warehouse
+### Step 3: Configure the SQL Warehouse
 
 The app needs a SQL warehouse to query system tables for cost, lineage, heat, and orphan detection.
 
@@ -89,7 +80,7 @@ The included `app.yaml` also declares a `sql-warehouse` resource with `id: auto`
 
 > **Important:** The warehouse must be running when the app starts. If it's stopped, system table features will be unavailable until the warehouse is started and the app is refreshed.
 
-### Step 5: Grant System Table Access
+### Step 4: Grant System Table Access
 
 Run these as a **workspace admin** in the SQL Editor. Replace `<principal>` with the Databricks App service principal name.
 
@@ -117,7 +108,7 @@ GRANT SELECT ON TABLE system.lakeflow.job_run_timeline TO `<principal>`;
 
 > **These grants are optional.** The app works without them — the canvas and UC browsing are fully functional. System-table-powered features (heat dots, cost overlay, lineage edges, orphan detection) will show "requires system table access" messages until grants are in place.
 
-### Step 6: Open Lattice
+### Step 5: Open Lattice
 
 Go to **Compute → Apps → lattice**. Once the status shows **Running**, click the app URL link next to the status badge to launch Lattice.
 

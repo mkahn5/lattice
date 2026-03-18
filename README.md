@@ -193,9 +193,9 @@ Lattice builds a live ontology of your Databricks environment — every Unity Ca
 
 ## Quick Start — Deploy as a Databricks App
 
-### 1. Set up GitHub access
+### 1. Create a GitHub Personal Access Token
 
-Create a [fine-grained personal access token](https://github.com/settings/tokens?type=beta) with **Contents → Read-only** on the Lattice repo. Then add it to your Databricks workspace under **Settings → Developer → Git credentials**.
+Create a [fine-grained personal access token](https://github.com/settings/tokens?type=beta) with **Contents → Read-only** on the Lattice repo. You'll paste this during app setup.
 
 ### 2. Create the app
 
@@ -208,7 +208,7 @@ In your Databricks workspace: **Compute → Apps → Create App**
 | **Repo URL** | `https://github.com/databricks-field-eng/lattice.git` |
 | **Branch** | `main` |
 
-During setup, you'll be prompted to select a **SQL warehouse** — this injects `DATABRICKS_WAREHOUSE_ID` automatically. Pick any running warehouse (required for cost, lineage, heat, and orphan detection features).
+During setup, enter your **GitHub username + PAT** when prompted for Git credentials, and select a **SQL warehouse** (required for cost, lineage, heat, and orphan detection features).
 
 ### 3. Grant system table access
 
