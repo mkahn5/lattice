@@ -1192,7 +1192,7 @@ export function Sidebar() {
           className="flex items-center gap-1 text-[10px] text-gray-300 hover:text-indigo-500 transition-colors"
           title="Report a bug or request a feature"
         >
-          🐞 Feedback & bug reports
+          🐞 Feedback and bugs
         </a>
       </div>
     </aside>
