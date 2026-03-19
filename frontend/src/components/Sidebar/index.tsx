@@ -1189,7 +1189,7 @@ export function Sidebar() {
           href="https://github.com/mkahn5/lattice/issues"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-[11px] opacity-40 hover:opacity-100 transition-opacity"
+          className="text-[11px]"
           title="Feedback and bugs"
         >
           🐞
