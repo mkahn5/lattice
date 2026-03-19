@@ -261,7 +261,7 @@ export function FirstRunWizard() {
                     <span className="text-[10px] font-mono text-gray-400 bg-gray-100 px-2 py-0.5 rounded">v{versionInfo.current}</span>
                     {versionInfo.update_available && versionInfo.latest && (
                       <span className="text-[10px] text-amber-600 bg-amber-50 px-2 py-0.5 rounded font-medium">
-                        v{versionInfo.latest} available
+                        {versionInfo.latest?.startsWith('v') ? '' : 'v'}{versionInfo.latest} available
                       </span>
                     )}
                   </div>

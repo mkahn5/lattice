@@ -193,7 +193,7 @@ function ProfileForm({ form, setForm, testResult, testing, saving, saveError, is
           style={{ WebkitTextSecurity: 'disc' } as React.CSSProperties}
         />
       </div>
-      <div className="flex items-center justify-between pt-1">
+      <div className="pt-1 space-y-1.5">
         <div className="flex items-center gap-2">
           <button
             onClick={onTest}
@@ -208,11 +208,11 @@ function ProfileForm({ form, setForm, testResult, testing, saving, saveError, is
               {testResult.ok ? `✓ Connected as ${testResult.user}` : `✕ ${testResult.error}`}
             </span>
           )}
-          {saveError && (
-            <span className="text-[9px] text-red-500">✕ {saveError}</span>
-          )}
         </div>
-        <div className="flex items-center gap-2">
+        {saveError && (
+          <div className="text-[9px] text-red-500">✕ {saveError}</div>
+        )}
+        <div className="flex items-center justify-end gap-2">
           <button onClick={onCancel} className="text-[10px] text-gray-500 hover:text-gray-700 transition-colors">
             Cancel
           </button>
@@ -333,7 +333,7 @@ export function SettingsPanel() {
                   rel="noopener noreferrer"
                   className="text-[9px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded font-medium hover:bg-amber-100 transition-colors flex items-center gap-1"
                 >
-                  v{versionInfo.latest} available <ExternalLink size={7} />
+                  {versionInfo.latest?.startsWith('v') ? '' : 'v'}{versionInfo.latest} available <ExternalLink size={7} />
                 </a>
               )}
               <button

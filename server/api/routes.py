@@ -383,8 +383,10 @@ def get_version():
         req = urllib.request.Request(GITHUB_RELEASES_URL, headers={"Accept": "application/vnd.github.v3+json"})
         with urllib.request.urlopen(req, timeout=3) as resp:
             data = json.loads(resp.read())
-            latest = data.get("tag_name", "").lstrip("v")
-            if latest:
+            tag = data.get("tag_name", "")
+            latest = tag.lstrip("v")
+            # Only use if it looks like a semver (e.g. 0.5.1), not a tag like "latest"
+            if latest and re.match(r'^\d+\.\d+', latest):
                 result["latest"] = latest
                 result["update_available"] = latest != _APP_VERSION
     except Exception:
