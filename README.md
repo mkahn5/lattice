@@ -420,6 +420,18 @@ After first launch, configure catalog scope, limits, and warehouse in **Settings
 
 ## Release Notes
 
+### v0.5.1 — Multi-Workspace & Screenshots (Mar 18, 2026)
+- **Workspace profiles in Settings:** Add, edit, test, and delete workspace profiles (name + host + PAT) directly in the Settings UI. Profiles stored in `lattice_config.json` alongside CLI profiles from `~/.databrickscfg`.
+- **Setup wizard — Workspaces step:** New step 3 in the first-run wizard lets users add additional workspaces during initial setup.
+- **Workspace switcher improvements:** Primary workspace always visible, spinner during switch, click-outside to close dropdown, PAT/APP/CLI source badges.
+- **Seamless workspace switching:** Canvas clears immediately on switch, progress section shows real-time ingestion steps (Connect → Compute → UC → Lineage → Build), cached workspaces load instantly on repeat visits.
+- **Per-workspace caching:** Each workspace's graph is cached separately by profile name. Switching to a previously visited workspace serves the cached graph in ~500ms while a background refresh runs.
+- **Auth isolation:** Stored PAT profiles override Databricks App auto-injected credentials. Env vars (CLIENT_ID/SECRET) temporarily cleared during PAT auth to prevent SDK conflicts.
+- **Autocomplete suppressed:** Profile forms no longer trigger browser password manager prompts.
+- **Progress polling:** Sidebar ingestion status and App-level poller now run continuously, detecting workspace switches and updating in real-time.
+- **Screenshot refresh:** Retook 6 screenshots — main canvas (bird's eye), swimlane (wider zoom), focus view (schema with 15+ connections), health/orphans (30d active vs dimmed), cost overlay (warehouse DBU heatmap with attribution), activity timeline (30d filter), settings (redacted hostname).
+- **Documentation:** Added 30–90 second first-load timing note, step-by-step PAT instructions (Settings → Developer → Access tokens), workspace profiles setup guide in both README and INSTALL.md.
+
 ### v0.5.0 — Deployment & Canvas UX (Mar 17–18, 2026)
 - **Databricks Apps deployment:** Git-based deployment with GitHub PAT, SQL warehouse resource injection, and `.venv/bin/python3` fix for uvicorn module resolution.
 - **Frontend included in repo:** `frontend/dist/` committed so Git-based deployments work without Node.js in the app runtime.
