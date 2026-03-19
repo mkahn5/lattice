@@ -802,6 +802,7 @@ function ProfileSwitcher({ onSwitching }: { onSwitching: (v: boolean) => void })
   const [open, setOpen] = useState(false)
   const [switching, setSwitching] = useState(false)
   const active = profiles.find(p => p.active)
+  const dropdownRef = useRef<HTMLDivElement>(null)
 
   const fetchProfiles = () => {
     fetch('/api/profiles')
@@ -816,6 +817,16 @@ function ProfileSwitcher({ onSwitching }: { onSwitching: (v: boolean) => void })
     const interval = setInterval(fetchProfiles, 10000)
     return () => clearInterval(interval)
   }, [])
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    if (!open) return
+    const handler = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [open])
 
   const switchTo = async (profile: string) => {
     setSwitching(true)
@@ -833,8 +844,8 @@ function ProfileSwitcher({ onSwitching }: { onSwitching: (v: boolean) => void })
         return
       }
       setProfiles(p => p.map(x => ({ ...x, active: x.name === profile })))
-      // Clear old graph so the canvas resets immediately
-      useGraphStore.setState({ nodes: [], edges: [], stats: { node_count: 0, edge_count: 0, node_types: {} }, collapsedSchemas: new Set(), selectedNodeIds: new Set() })
+      // Clear old graph and show loading state
+      useGraphStore.setState({ nodes: [], edges: [], stats: { node_count: 0, edge_count: 0, node_types: {} }, collapsedSchemas: new Set(), selectedNodeIds: new Set(), loading: true })
       pollUntilReady(
         async () => {
           await loadGraph()
@@ -851,14 +862,16 @@ function ProfileSwitcher({ onSwitching }: { onSwitching: (v: boolean) => void })
   if (profiles.length < 2) return null
 
   return (
-    <div className="relative">
+    <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setOpen(v => !v)}
-        disabled={switching}
-        className="flex items-center gap-1 text-[10px] text-gray-500 hover:text-gray-800 disabled:opacity-50 max-w-full"
+        className="flex items-center gap-1 text-[10px] text-gray-500 hover:text-gray-800 max-w-full"
         title="Switch workspace profile"
       >
-        <Globe size={10} className="shrink-0 text-gray-400" />
+        {switching
+          ? <Loader size={10} className="shrink-0 text-indigo-500 animate-spin" />
+          : <Globe size={10} className="shrink-0 text-gray-400" />
+        }
         <span className="truncate">{active?.host?.replace(/^https?:\/\//, '').replace(/\/$/, '') || 'Default workspace'}</span>
         <ChevronDown size={10} className="shrink-0" />
       </button>
@@ -866,7 +879,7 @@ function ProfileSwitcher({ onSwitching }: { onSwitching: (v: boolean) => void })
       {open && (
         <div className="absolute left-0 top-full mt-1 z-50 bg-white border border-gray-200 rounded-lg shadow-lg w-72 text-xs">
           <div className="px-3 py-2 border-b border-gray-100 text-[10px] uppercase tracking-wider text-gray-400 font-semibold">
-            Switch Workspace
+            {switching ? 'Switching workspace…' : 'Switch Workspace'}
           </div>
           <div className="max-h-48 overflow-y-auto">
             {profiles.map(p => (
