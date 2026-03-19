@@ -305,15 +305,18 @@ function IngestionStatus() {
   const pollRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
+    let prevDone = false
     const poll = async () => {
       try {
         const res = await fetch('/api/progress')
         const data: ProgressState = await res.json()
         setProgress(data)
-        if (data.done && !data.error) setDoneAt(new Date())
-        if (!data.done) {
-          pollRef.current = setTimeout(poll, 1200)
-        }
+        if (data.done && !data.error && !prevDone) setDoneAt(new Date())
+        // Detect workspace switch: done went from true → false
+        if (!data.done && prevDone) { setDoneAt(null) }
+        prevDone = data.done
+        // Always keep polling (workspace switch resets progress)
+        pollRef.current = setTimeout(poll, data.done ? 5000 : 1200)
       } catch {
         pollRef.current = setTimeout(poll, 3000)
       }
