@@ -432,7 +432,9 @@ export function FirstRunWizard() {
                           setProfileTesting(true); setProfileTestResult(null)
                           try {
                             const r = await fetch('/api/profiles/test', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(profileForm) })
-                            setProfileTestResult(await r.json())
+                            const d = await r.json()
+                            if (d.detail) { const msg = Array.isArray(d.detail) ? d.detail.map((e: any) => e.msg).join('; ') : d.detail; setProfileTestResult({ ok: false, error: msg }) }
+                            else { setProfileTestResult(d) }
                           } catch { setProfileTestResult({ ok: false, error: 'Network error' }) }
                           setProfileTesting(false)
                         }}

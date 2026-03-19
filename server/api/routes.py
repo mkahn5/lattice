@@ -35,7 +35,7 @@ try:
 except ImportError:
     _APP_VERSION = "unknown"
 
-GITHUB_RELEASES_URL = "https://api.github.com/repos/databricks-field-eng/lattice/releases/latest"
+GITHUB_RELEASES_URL = "https://api.github.com/repos/mkahn5/lattice/releases/latest"
 
 # Graph state held in module-level variable (rebuilt on /refresh)
 _graph_data: dict = {"nodes": [], "edges": [], "stats": {}}
@@ -239,8 +239,22 @@ def delete_profile(name: str):
     return {"ok": True}
 
 
+class ProfileTestBody(BaseModel):
+    name: str = ""
+    host: str
+    token: str
+
+    @field_validator("host")
+    @classmethod
+    def validate_host(cls, v):
+        v = v.rstrip("/")
+        if not v.startswith("https://"):
+            raise ValueError("Host must be an https:// URL")
+        return v
+
+
 @router.post("/api/profiles/test")
-def test_profile(body: ProfileBody):
+def test_profile(body: ProfileTestBody):
     """Test that profile credentials can connect to the workspace."""
     # Temporarily clear env vars that conflict with PAT auth so the SDK
     # doesn't try to combine OAuth + PAT and fail with "more than one

@@ -427,7 +427,9 @@ export function SettingsPanel() {
                           setTesting(true); setTestResult(null); setProfileSaveError(null)
                           try {
                             const r = await fetch('/api/profiles/test', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(profileForm) })
-                            setTestResult(await r.json())
+                            const d = await r.json()
+                            if (d.detail) { const msg = Array.isArray(d.detail) ? d.detail.map((e: any) => e.msg).join('; ') : d.detail; setTestResult({ ok: false, error: msg }) }
+                            else { setTestResult(d) }
                           } catch { setTestResult({ ok: false, error: 'Network error' }) }
                           setTesting(false)
                         }}
