@@ -1122,6 +1122,15 @@ export function Sidebar() {
             >
               <FileJson size={14} />
             </button>
+            <a
+              href="https://github.com/mkahn5/lattice/issues"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-700"
+              title="Report a bug or request a feature"
+            >
+              <span className="text-[12px] leading-none">🐛</span>
+            </a>
             <button
               onClick={() => setShowSettings(true)}
               className="p-1.5 rounded hover:bg-gray-100 text-gray-500"
