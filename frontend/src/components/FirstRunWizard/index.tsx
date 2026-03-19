@@ -412,18 +412,18 @@ export function FirstRunWizard() {
               </div>
 
               {addingProfile ? (
-                <div className="border border-indigo-200 bg-indigo-50/30 rounded-lg p-3 space-y-2.5">
+                <form className="border border-indigo-200 bg-indigo-50/30 rounded-lg p-3 space-y-2.5" autoComplete="off" onSubmit={e => e.preventDefault()}>
                   <div>
                     <label className="text-[11px] text-gray-500 block mb-0.5">Profile name</label>
-                    <input type="text" value={profileForm.name} onChange={e => setProfileForm({ ...profileForm, name: e.target.value })} placeholder="production" className="w-full border border-gray-200 rounded px-2.5 py-1.5 text-[12px] focus:outline-none focus:ring-1 focus:ring-indigo-400" />
+                    <input type="text" value={profileForm.name} onChange={e => setProfileForm({ ...profileForm, name: e.target.value })} placeholder="production" autoComplete="off" className="w-full border border-gray-200 rounded px-2.5 py-1.5 text-[12px] focus:outline-none focus:ring-1 focus:ring-indigo-400" />
                   </div>
                   <div>
                     <label className="text-[11px] text-gray-500 block mb-0.5">Host URL</label>
-                    <input type="text" value={profileForm.host} onChange={e => setProfileForm({ ...profileForm, host: e.target.value })} placeholder="https://my-workspace.cloud.databricks.com" className="w-full border border-gray-200 rounded px-2.5 py-1.5 text-[12px] font-mono focus:outline-none focus:ring-1 focus:ring-indigo-400" />
+                    <input type="text" value={profileForm.host} onChange={e => setProfileForm({ ...profileForm, host: e.target.value })} placeholder="https://my-workspace.cloud.databricks.com" autoComplete="off" className="w-full border border-gray-200 rounded px-2.5 py-1.5 text-[12px] font-mono focus:outline-none focus:ring-1 focus:ring-indigo-400" />
                   </div>
                   <div>
                     <label className="text-[11px] text-gray-500 block mb-0.5">Personal Access Token</label>
-                    <input type="password" value={profileForm.token} onChange={e => setProfileForm({ ...profileForm, token: e.target.value })} placeholder="dapi..." className="w-full border border-gray-200 rounded px-2.5 py-1.5 text-[12px] font-mono focus:outline-none focus:ring-1 focus:ring-indigo-400" />
+                    <input type="text" value={profileForm.token} onChange={e => setProfileForm({ ...profileForm, token: e.target.value })} placeholder="dapi..." autoComplete="off" data-1p-ignore data-lpignore="true" className="w-full border border-gray-200 rounded px-2.5 py-1.5 text-[12px] font-mono focus:outline-none focus:ring-1 focus:ring-indigo-400" style={{ WebkitTextSecurity: 'disc' } as React.CSSProperties} />
                   </div>
                   <div className="flex items-center justify-between pt-1">
                     <div className="flex items-center gap-2">
@@ -469,7 +469,7 @@ export function FirstRunWizard() {
                       </button>
                     </div>
                   </div>
-                </div>
+                </form>
               ) : (
                 <button
                   onClick={() => { setAddingProfile(true); setProfileForm({ name: '', host: '', token: '' }); setProfileTestResult(null); setProfileSaveError(null) }}

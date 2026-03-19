@@ -150,7 +150,7 @@ function ProfileForm({ form, setForm, testResult, testing, saving, saveError, is
   const canSave = form.name.length > 0 && form.host.startsWith('https://') && (isEdit || form.token.length > 5)
 
   return (
-    <div className="border border-indigo-200 bg-indigo-50/30 rounded-lg p-3 space-y-2">
+    <form className="border border-indigo-200 bg-indigo-50/30 rounded-lg p-3 space-y-2" autoComplete="off" onSubmit={e => e.preventDefault()}>
       <div>
         <label className="text-[10px] text-gray-500 block mb-0.5">Profile name</label>
         <input
@@ -159,6 +159,7 @@ function ProfileForm({ form, setForm, testResult, testing, saving, saveError, is
           onChange={e => setForm({ ...form, name: e.target.value })}
           disabled={isEdit}
           placeholder="my-workspace"
+          autoComplete="off"
           className="w-full border border-gray-200 rounded px-2 py-1 text-[11px] focus:outline-none focus:ring-1 focus:ring-indigo-400 disabled:bg-gray-100 disabled:text-gray-500"
         />
       </div>
@@ -169,6 +170,7 @@ function ProfileForm({ form, setForm, testResult, testing, saving, saveError, is
           value={form.host}
           onChange={e => setForm({ ...form, host: e.target.value })}
           placeholder="https://my-workspace.cloud.databricks.com"
+          autoComplete="off"
           className="w-full border border-gray-200 rounded px-2 py-1 text-[11px] font-mono focus:outline-none focus:ring-1 focus:ring-indigo-400"
         />
       </div>
@@ -177,11 +179,15 @@ function ProfileForm({ form, setForm, testResult, testing, saving, saveError, is
           Personal Access Token {isEdit && <span className="text-gray-400">(leave blank to keep current)</span>}
         </label>
         <input
-          type="password"
+          type="text"
           value={form.token}
           onChange={e => setForm({ ...form, token: e.target.value })}
           placeholder={isEdit ? '••••••••' : 'dapi...'}
+          autoComplete="off"
+          data-1p-ignore
+          data-lpignore="true"
           className="w-full border border-gray-200 rounded px-2 py-1 text-[11px] font-mono focus:outline-none focus:ring-1 focus:ring-indigo-400"
+          style={{ WebkitTextSecurity: 'disc' } as React.CSSProperties}
         />
       </div>
       <div className="flex items-center justify-between pt-1">
@@ -217,7 +223,7 @@ function ProfileForm({ form, setForm, testResult, testing, saving, saveError, is
           </button>
         </div>
       </div>
-    </div>
+    </form>
   )
 }
 
