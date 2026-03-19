@@ -31,6 +31,7 @@ With just these, Lattice discovers and visualizes all UC assets, compute resourc
 | **Job success rates** | SQL warehouse | `system.lakeflow.job_run_timeline` |
 | **Row counts & table sizes** | SQL warehouse | `system.information_schema.table_storage_utilization` |
 | **Annotations (tags & notes)** | SQL warehouse + CREATE TABLE on `lattice.metadata` | — |
+| **Workspace switching** | PAT from target workspace (Settings → Developer → Access tokens) | — |
 | **App sharing** | Set **Can Use** permission on the app for workspace users | — |
 
 > **Graceful degradation:** Every system table feature is optional. If a warehouse isn't configured or a grant is missing, that feature is disabled and the rest of the app works normally. Check **Settings → System Access** inside Lattice for per-feature status.
@@ -139,6 +140,8 @@ GRANT SELECT ON TABLE system.lakeflow.job_run_timeline TO `<principal>`;
 
 Go to **Compute → Apps → lattice**. Once the status shows **Running**, click the app URL link next to the status badge to launch Lattice.
 
+> **First load:** The initial ingestion discovers all workspace assets and queries system tables for usage, lineage, and cost data. This typically takes **30–90 seconds** depending on workspace size. Subsequent loads are faster thanks to caching — the cached graph loads instantly while a background refresh runs.
+
 ### Step 7: Set App Permissions
 
 By default, only the app creator can access Lattice. To share it across your organization:
@@ -153,9 +156,23 @@ This allows anyone in the workspace to open and use Lattice.
 On first launch, Lattice runs a setup wizard:
 1. **Welcome** — explains what Lattice maps
 2. **Catalog scope** — select which catalogs to include (or use all)
-3. **System access** — pre-flight checks show which features are available
+3. **Workspaces** — add additional workspace profiles (optional)
+4. **System access** — pre-flight checks show which features are available
 
 You can skip the wizard and configure everything later in **Settings** (gear icon).
+
+### Step 8: Add Additional Workspaces (Optional)
+
+Connect Lattice to other Databricks workspaces to switch between them (e.g. dev, staging, production).
+
+1. In the **target workspace**: go to **Settings → Developer → Access tokens**
+2. Click **Generate new token**, set a description (e.g. `lattice`) and expiration
+3. Copy the token value
+4. In **Lattice**: open **Settings** (gear icon) → **Workspace Profiles** → click **Add**
+5. Enter a profile name (e.g. `production`), the workspace host URL, and paste the token
+6. Click **Test connection** to verify, then **Save**
+
+The workspace switcher appears in the sidebar once you have 2+ profiles. Click any profile to switch — Lattice re-ingests the new workspace automatically.
 
 ---
 

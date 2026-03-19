@@ -168,7 +168,9 @@ Lattice builds a live ontology of your Databricks environment — every Unity Ca
 - **Pipelines** — DLT and Autoloader pipelines
 
 ### Multi-Workspace
-- **Profile switcher** — switch between Databricks CLI profiles without restarting
+- **Workspace profiles** — add workspaces via Settings or the setup wizard (name + host + PAT), stored in `lattice_config.json`
+- **Profile switcher** — switch between workspaces in the sidebar without restarting; supports PAT-based profiles, CLI profiles from `~/.databrickscfg`, and the primary app workspace
+- **Test connection** — validate credentials before saving a profile
 - **Catalog selector** — live search with 200-limit dropdown
 - **Progress polling** — non-blocking ingestion banner during workspace switch
 
@@ -261,7 +263,24 @@ Go to **Compute → Apps → lattice → Permissions**. Add **All workspace user
 
 ### 5. Open Lattice
 
-Go to **Compute → Apps → lattice**. Once the status shows **Running**, click the app URL link next to the status badge to launch Lattice. The first-run wizard will guide you through catalog selection and system access checks.
+Go to **Compute → Apps → lattice**. Once the status shows **Running**, click the app URL link next to the status badge to launch Lattice. The first-run wizard will guide you through catalog selection, workspace profiles, and system access checks.
+
+> **First load:** The initial ingestion discovers all workspace assets and queries system tables for usage, lineage, and cost data. This typically takes **30–90 seconds** depending on workspace size. Subsequent loads are faster thanks to caching — the cached graph loads instantly while a background refresh runs.
+
+### 6. Add additional workspaces (optional)
+
+Connect Lattice to other Databricks workspaces (dev, staging, production) to switch between them without redeploying.
+
+1. In the target workspace: go to **Settings → Developer → Access tokens**
+2. Click **Generate new token**, set a description (e.g. `lattice`) and expiration
+3. Copy the token value
+4. In Lattice: open **Settings** (gear icon) → **Workspace Profiles** → click **Add**
+5. Enter a profile name (e.g. `production`), the workspace host URL, and paste the token
+6. Click **Test connection** to verify, then **Save**
+
+The workspace switcher appears in the sidebar once you have 2+ profiles. Click any profile to switch — Lattice re-ingests the new workspace automatically.
+
+> You can also add workspaces during the first-run setup wizard (step 3).
 
 ### Run Locally (development)
 
@@ -324,7 +343,10 @@ After first launch, configure catalog scope, limits, and warehouse in **Settings
 | POST | `/api/config` | Save settings (merge), triggers re-ingest if scope changed |
 | GET | `/api/info` | Workspace host, catalog filter, ingestion status |
 | POST | `/api/switch` | Switch profile/catalog + re-ingest (10s cooldown) |
-| GET | `/api/profiles` | List available Databricks CLI profiles |
+| GET | `/api/profiles` | List all workspace profiles (primary + stored + CLI) |
+| POST | `/api/profiles` | Create or update a stored workspace profile |
+| DELETE | `/api/profiles/{name}` | Delete a stored workspace profile |
+| POST | `/api/profiles/test` | Test workspace credentials before saving |
 | GET | `/api/catalogs` | List catalogs with search + active filter |
 
 ### Enrichment & Health
