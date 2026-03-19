@@ -43,6 +43,7 @@ _graph_data: dict = {"nodes": [], "edges": [], "stats": {}}
 # Column lineage: {target_table_fqn_lower: [{target_col, source_table, source_col}]}
 _column_lineage: dict = {}
 _workspace_host: str = ""
+_primary_host: str = ""  # original workspace host at startup — never changes on switch
 
 # Cost attribution: {available, nodes, summary}
 _cost_data: dict = {}
@@ -84,13 +85,15 @@ def next_ingestion_gen() -> int:
 
 def set_graph(data: dict, host: str = "", gen: int | None = None):
     """Update graph state. If gen is provided, only updates if it matches the current generation."""
-    global _workspace_host
+    global _workspace_host, _primary_host
     if gen is not None and gen != _ingestion_gen:
         return  # superseded ingestion — discard
     _graph_data.clear()
     _graph_data.update(data)
     if host:
         _workspace_host = host
+        if not _primary_host:
+            _primary_host = host  # capture original host on first ingestion
     _progress["graph_ready"] = True  # signal: canvas can render now
 
 
@@ -135,7 +138,7 @@ def get_cost():
 
 @router.get("/api/profiles")
 def get_profiles():
-    """List available profiles from Lattice config, ~/.databrickscfg, and the current workspace."""
+    """List available profiles: primary workspace + Lattice-stored + CLI profiles."""
     import configparser
     from server.config import get_stored_profiles
 
@@ -143,29 +146,18 @@ def get_profiles():
     seen_names: set[str] = set()
     current = os.environ.get("DATABRICKS_PROFILE", "")
 
-    # Always include the current/primary workspace as first entry.
-    # _workspace_host is set after ingestion; fall back to env vars or databrickscfg.
-    primary_host = _workspace_host or os.environ.get("DATABRICKS_HOST", "")
-    if not primary_host and current:
-        try:
-            cfg = configparser.ConfigParser()
-            cfg.read(os.path.expanduser("~/.databrickscfg"))
-            if current in cfg:
-                primary_host = cfg[current].get("host", "")
-        except Exception:
-            pass
-    # Always add the primary entry — even without a host yet (loading state)
-    primary_name = current or "primary"
-    is_app = bool(os.environ.get("DATABRICKS_APP_NAME"))
+    # 1. Primary workspace — the one the app was deployed on (never removed)
+    primary_host = _primary_host or _workspace_host or os.environ.get("DATABRICKS_HOST", "")
+    is_primary_active = not current  # active when no explicit profile is set
     profiles.append({
-        "name": primary_name,
+        "name": "primary",
         "host": primary_host or "(connecting…)",
-        "active": not current or current == primary_name,
-        "source": "app" if is_app else "env",
+        "active": is_primary_active,
+        "source": "app" if os.environ.get("DATABRICKS_APP_NAME") else "env",
     })
-    seen_names.add(primary_name)
+    seen_names.add("primary")
 
-    # Lattice-stored profiles (editable in Settings)
+    # 2. Lattice-stored profiles (editable in Settings UI)
     for name, data in get_stored_profiles().items():
         if name in seen_names:
             continue
@@ -177,7 +169,7 @@ def get_profiles():
         })
         seen_names.add(name)
 
-    # Then ~/.databrickscfg profiles (read-only from UI)
+    # 3. ~/.databrickscfg profiles (read-only from UI)
     cfg_path = os.path.expanduser("~/.databrickscfg")
     try:
         cfg = configparser.ConfigParser()
@@ -316,15 +308,19 @@ async def switch_profile(body: dict):
 
     # Profile is optional — if omitted, keep current
     if profile:
-        from server.config import get_stored_profiles
-        stored = get_stored_profiles()
-        if profile not in stored:
-            # Fall back to ~/.databrickscfg
-            cfg = configparser.ConfigParser()
-            cfg.read(os.path.expanduser("~/.databrickscfg"))
-            if profile not in cfg:
-                raise HTTPException(status_code=404, detail=f"Profile '{profile}' not found")
-        os.environ["DATABRICKS_PROFILE"] = profile
+        if profile == "primary":
+            # Switch back to the original workspace — clear profile override
+            os.environ.pop("DATABRICKS_PROFILE", None)
+        else:
+            from server.config import get_stored_profiles
+            stored = get_stored_profiles()
+            if profile not in stored:
+                # Fall back to ~/.databrickscfg
+                cfg = configparser.ConfigParser()
+                cfg.read(os.path.expanduser("~/.databrickscfg"))
+                if profile not in cfg:
+                    raise HTTPException(status_code=404, detail=f"Profile '{profile}' not found")
+            os.environ["DATABRICKS_PROFILE"] = profile
 
     os.environ["LATTICE_CATALOGS"] = catalog
 
