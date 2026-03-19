@@ -90,37 +90,39 @@ def get_stored_profiles() -> dict:
 
 
 def get_workspace_client() -> WorkspaceClient:
-    # In Databricks App: auto-injected credentials
+    profile = os.environ.get("DATABRICKS_PROFILE", "")
+
+    # 1. Lattice-stored profiles take top priority — even in Databricks App mode,
+    #    if the user switched to a stored profile via the workspace switcher.
+    if profile:
+        stored = get_stored_profiles()
+        if profile in stored:
+            sp = stored[profile]
+            if sp.get("host") and sp.get("token"):
+                # Temporarily clear conflicting env vars so the SDK doesn't
+                # combine OAuth + PAT and fail with auth conflict
+                _env_keys = [
+                    "DATABRICKS_HOST", "DATABRICKS_TOKEN", "DATABRICKS_CLIENT_ID",
+                    "DATABRICKS_CLIENT_SECRET", "DATABRICKS_WORKSPACE_ID",
+                ]
+                saved_env = {k: os.environ.pop(k) for k in _env_keys if k in os.environ}
+                try:
+                    return WorkspaceClient(host=sp["host"], token=sp["token"])
+                finally:
+                    os.environ.update(saved_env)
+
+    # 2. In Databricks App: auto-injected credentials (no profile override active)
     if os.environ.get("DATABRICKS_APP_NAME"):
         return WorkspaceClient()
 
-    # Explicit token via env
+    # 3. Explicit token via env
     host = os.environ.get("DATABRICKS_HOST")
     token = os.environ.get("DATABRICKS_TOKEN")
     if host and token:
         return WorkspaceClient(host=host, token=token)
 
-    # Profile-based
-    profile = os.environ.get("DATABRICKS_PROFILE", "e2-demo-west")
-
-    # Check Lattice-stored profiles first (PAT-based, managed in Settings UI)
-    stored = get_stored_profiles()
-    if profile in stored:
-        sp = stored[profile]
-        if sp.get("host") and sp.get("token"):
-            # Temporarily clear conflicting env vars so the SDK doesn't
-            # combine OAuth + PAT and fail with auth conflict
-            _env_keys = [
-                "DATABRICKS_HOST", "DATABRICKS_TOKEN", "DATABRICKS_CLIENT_ID",
-                "DATABRICKS_CLIENT_SECRET", "DATABRICKS_WORKSPACE_ID",
-            ]
-            saved_env = {k: os.environ.pop(k) for k in _env_keys if k in os.environ}
-            try:
-                return WorkspaceClient(host=sp["host"], token=sp["token"])
-            finally:
-                os.environ.update(saved_env)
-
-    # Fall back to ~/.databrickscfg (OAuth via CLI)
+    # 4. Fall back to ~/.databrickscfg (OAuth via CLI)
+    profile = profile or "e2-demo-west"
     try:
         import configparser
         cfg = configparser.ConfigParser()
