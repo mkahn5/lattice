@@ -655,7 +655,14 @@ export function SettingsPanel() {
         {/* Footer */}
         <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <p className="text-[10px] text-gray-400">Changes to scope will re-ingest the graph.</p>
+            <a
+              href="https://github.com/mkahn5/lattice/issues"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[10px] text-gray-400 hover:text-indigo-600 transition-colors whitespace-nowrap flex items-center gap-1"
+            >
+              <ExternalLink size={8} /> Feedback & bugs
+            </a>
             <button
               onClick={() => { setShowSettings(false); setShowWizard(true) }}
               className="text-[10px] text-indigo-500 hover:text-indigo-700 transition-colors whitespace-nowrap"
