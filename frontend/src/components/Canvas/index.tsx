@@ -1067,7 +1067,7 @@ export function Canvas() {
           style={{ height: 120 }}
         />
 
-        <Panel position="bottom-left">
+        <Panel position="bottom-left" style={{ marginLeft: 48 }}>
           <EdgeLegend />
         </Panel>
 
