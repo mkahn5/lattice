@@ -119,10 +119,13 @@ function CheckRow({ check, workspaceHost }: { check: PreflightCheck; workspaceHo
 
 function useVersionInfo() {
   const [info, setInfo] = useState<{ current: string; latest: string | null; update_available: boolean } | null>(null)
-  useEffect(() => {
-    fetch('/api/version').then(r => r.json()).then(setInfo).catch(() => {})
-  }, [])
-  return info
+  const [checking, setChecking] = useState(false)
+  const check = () => {
+    setChecking(true)
+    fetch('/api/version').then(r => r.json()).then(d => { setInfo(d); setChecking(false) }).catch(() => setChecking(false))
+  }
+  useEffect(() => { check() }, [])
+  return { info, checking, check }
 }
 
 interface ProfileEntry {
@@ -229,7 +232,7 @@ function ProfileForm({ form, setForm, testResult, testing, saving, saveError, is
 
 export function SettingsPanel() {
   const { appConfig, appStatus, workspaceInfo, saveConfig, fetchConfig, fetchStatus, setShowSettings, setShowWizard } = useGraphStore()
-  const versionInfo = useVersionInfo()
+  const { info: versionInfo, checking: versionChecking, check: checkVersion } = useVersionInfo()
 
   const [catalogs, setCatalogs] = useState<string[]>([])
   const [allCatalogs, setAllCatalogs] = useState<{ name: string }[]>([])
@@ -238,7 +241,7 @@ export function SettingsPanel() {
   const [tableLimit, setTableLimit] = useState(50)
   const [warehouseId, setWarehouseId] = useState('')
   const [saving, setSaving] = useState(false)
-  const [saved, setSaved] = useState(false)
+  // saved state removed — panel closes immediately on save
   const [statusSection, setStatusSection] = useState(true)
   const [scopeSection, setScopeSection] = useState(true)
   const loadedRef = useRef(false)
@@ -303,8 +306,7 @@ export function SettingsPanel() {
     setSaving(true)
     await saveConfig({ catalogs, schema_limit: schemaLimit, table_limit: tableLimit, warehouse_id: warehouseId })
     setSaving(false)
-    setSaved(true)
-    setTimeout(() => { setSaved(false); setShowSettings(false) }, 1000)
+    setShowSettings(false)
   }
 
   const handleRefreshStatus = () => fetchStatus()
@@ -325,10 +327,24 @@ export function SettingsPanel() {
                 <span className="text-[9px] font-mono text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">v{versionInfo.current}</span>
               )}
               {versionInfo?.update_available && versionInfo.latest && (
-                <span className="text-[9px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded font-medium">
-                  v{versionInfo.latest} available
-                </span>
+                <a
+                  href="https://github.com/databricks-field-eng/lattice/releases"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[9px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded font-medium hover:bg-amber-100 transition-colors flex items-center gap-1"
+                >
+                  v{versionInfo.latest} available <ExternalLink size={7} />
+                </a>
               )}
+              <button
+                onClick={checkVersion}
+                disabled={versionChecking}
+                className="flex items-center gap-1 text-[9px] text-gray-400 hover:text-indigo-600 transition-colors disabled:opacity-50"
+                title="Check for new releases"
+              >
+                <RefreshCw size={9} className={versionChecking ? 'animate-spin' : ''} />
+                {!versionInfo?.update_available && 'Check for updates'}
+              </button>
             </div>
             <p className="text-[11px] text-gray-400 mt-0.5">Configure catalog scope, limits, and warehouse</p>
           </div>
@@ -648,7 +664,6 @@ export function SettingsPanel() {
             </button>
           </div>
           <div className="flex items-center gap-2">
-            {saved && <span className="text-[10px] text-green-600 font-medium">✓ Saved</span>}
             <button
               onClick={() => setShowSettings(false)}
               className="px-3 py-1.5 text-[11px] border border-gray-200 text-gray-600 rounded-lg hover:bg-gray-50 transition-all"
@@ -661,7 +676,7 @@ export function SettingsPanel() {
               className="px-4 py-1.5 text-[11px] font-medium bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-all flex items-center gap-1.5"
             >
               {saving && <Loader size={11} className="animate-spin" />}
-              {saving ? 'Saving…' : 'Save & apply'}
+              {saving ? 'Saving…' : 'Save & close'}
             </button>
           </div>
         </div>
