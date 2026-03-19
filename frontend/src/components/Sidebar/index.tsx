@@ -770,12 +770,24 @@ interface Profile { name: string; host: string; active: boolean; source?: 'latti
 interface CatalogInfo { name: string; type: string; active: boolean }
 
 function pollUntilReady(onReady: () => void, onDone: () => void) {
+  let readyFired = false
   const poll = async () => {
     try {
       const res = await fetch('/api/progress')
       const data = await res.json()
-      if (data.graph_ready) { onReady(); return }
-      if (data.done) { onDone(); return }
+      if (data.graph_ready && !readyFired) {
+        readyFired = true
+        onReady()
+        // Keep polling until fully done so we reload the complete graph
+        if (!data.done) setTimeout(poll, 2000)
+        return
+      }
+      if (data.done) {
+        // Final reload with the complete graph
+        onReady()
+        onDone()
+        return
+      }
       setTimeout(poll, 1500)
     } catch {
       setTimeout(poll, 3000)
@@ -810,14 +822,22 @@ function ProfileSwitcher({ onSwitching }: { onSwitching: (v: boolean) => void })
     onSwitching(true)
     setOpen(false)
     try {
-      await fetch('/api/switch', {
+      const resp = await fetch('/api/switch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ profile }),
       })
+      if (!resp.ok) {
+        setSwitching(false)
+        onSwitching(false)
+        return
+      }
       setProfiles(p => p.map(x => ({ ...x, active: x.name === profile })))
       pollUntilReady(
-        async () => { await loadGraph(); await loadInfo(); setSwitching(false); onSwitching(false) },
+        async () => {
+          await loadGraph()
+          await loadInfo()
+        },
         () => { setSwitching(false); onSwitching(false) },
       )
     } catch {
