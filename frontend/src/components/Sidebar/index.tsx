@@ -849,6 +849,10 @@ function ProfileSwitcher({ onSwitching }: { onSwitching: (v: boolean) => void })
       setProfiles(p => p.map(x => ({ ...x, active: x.name === profile })))
       // Clear old graph and show loading state
       useGraphStore.setState({ nodes: [], edges: [], stats: { node_count: 0, edge_count: 0, node_types: {} }, collapsedSchemas: new Set(), selectedNodeIds: new Set(), loading: true })
+      // Try loading cached graph immediately (backend serves cache within ms)
+      setTimeout(async () => {
+        try { await loadGraph(); await loadInfo() } catch {}
+      }, 500)
       pollUntilReady(
         async () => {
           await loadGraph()
