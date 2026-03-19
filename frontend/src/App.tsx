@@ -33,23 +33,27 @@ export default function App() {
         const res = await fetch('/api/progress')
         const data: Progress = await res.json()
 
+        // Detect workspace switch: graph_ready went from true → false
         if (!data.graph_ready && prevGraphReadyRef.current) {
           graphLoadedRef.current = false
         }
         prevGraphReadyRef.current = data.graph_ready
 
-        if (data.done) {
-          if (!data.error) loadGraph()
-          graphLoadedRef.current = true
-          return
-        }
-
         if (data.graph_ready && !graphLoadedRef.current) {
           graphLoadedRef.current = true
           loadGraph()
+          loadInfo()
         }
 
-        pollRef.current = setTimeout(poll, 1500)
+        if (data.done && !data.error) {
+          // Final reload with complete graph
+          loadGraph()
+          loadInfo()
+          fetchAnnotations()
+        }
+
+        // Always keep polling (workspace switch resets progress)
+        pollRef.current = setTimeout(poll, data.done ? 5000 : 1500)
       } catch {
         pollRef.current = setTimeout(poll, 3000)
       }

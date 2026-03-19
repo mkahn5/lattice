@@ -512,7 +512,14 @@ export function Canvas() {
   const clipped = visibleNodes.length > MAX_RENDER
 
   useEffect(() => {
-    if (!latticeNodes.length) return
+    if (!latticeNodes.length) {
+      // Clear canvas when graph is empty (e.g. workspace switch in progress)
+      setRfNodes([])
+      setRfEdges([])
+      savedPositions.current.clear()
+      initialFitDone.current = false
+      return
+    }
 
     // Hard reset: clear saved positions when layout/view/filter changes
     if (hardResetKey !== prevHardResetKey.current) {
