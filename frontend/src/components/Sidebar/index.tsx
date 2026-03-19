@@ -833,6 +833,8 @@ function ProfileSwitcher({ onSwitching }: { onSwitching: (v: boolean) => void })
         return
       }
       setProfiles(p => p.map(x => ({ ...x, active: x.name === profile })))
+      // Clear old graph so the canvas resets immediately
+      useGraphStore.setState({ nodes: [], edges: [], stats: { node_count: 0, edge_count: 0, node_types: {} }, collapsedSchemas: new Set(), selectedNodeIds: new Set() })
       pollUntilReady(
         async () => {
           await loadGraph()
