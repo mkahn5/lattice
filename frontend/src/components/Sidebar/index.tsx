@@ -1194,6 +1194,15 @@ export function Sidebar() {
         >
           🐞
         </a>
+        <a
+          href="https://github.com/mkahn5/lattice"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[11px]"
+          title="Show some support by starring our repo on GitHub"
+        >
+          ⭐
+        </a>
       </div>
     </aside>
     </>
