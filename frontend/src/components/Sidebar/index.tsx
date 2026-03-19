@@ -1184,15 +1184,15 @@ export function Sidebar() {
           )
         })}
       </div>
-      <div className="px-3 py-2 border-t border-gray-100">
+      <div className="px-3 py-1.5 border-t border-gray-100">
         <a
           href="https://github.com/mkahn5/lattice/issues"
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-1 text-[10px] text-gray-300 hover:text-indigo-500 transition-colors"
-          title="Report a bug or request a feature"
+          className="text-[11px] opacity-40 hover:opacity-100 transition-opacity"
+          title="Feedback and bugs"
         >
-          🐞 Feedback and bugs
+          🐞
         </a>
       </div>
     </aside>
