@@ -1069,12 +1069,33 @@ export function Canvas() {
       >
         <Background color="#e5e7eb" gap={20} />
         <Controls />
-        <MiniMap
-          nodeColor={(n) => ((n.data as { color?: string }).color ?? '#94a3b8')}
-          zoomable
-          pannable
-          style={{ height: 120 }}
-        />
+        <Panel position="bottom-right">
+          <div className="flex flex-col items-end">
+            <span className="text-[9px] text-gray-400 mb-1 mr-0.5">Drag to navigate</span>
+            <MiniMap
+              nodeColor={(n) => ((n.data as { color?: string }).color ?? '#94a3b8')}
+              nodeStrokeColor={(n) => ((n.data as { color?: string }).color ?? '#94a3b8')}
+              nodeStrokeWidth={2}
+              nodeBorderRadius={3}
+              offsetScale={2}
+              zoomable
+              pannable
+              maskColor="rgba(30, 41, 59, 0.45)"
+              position="bottom-right"
+              style={{
+                position: 'relative',
+                height: 140,
+                width: 200,
+                backgroundColor: 'rgba(255, 255, 255, 0.92)',
+                border: '1px solid #d1d5db',
+                borderRadius: 8,
+                boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
+                margin: 0,
+              }}
+              className="minimap-enhanced"
+            />
+          </div>
+        </Panel>
 
         <Panel position="bottom-left" style={{ marginLeft: 48 }}>
           <EdgeLegend />

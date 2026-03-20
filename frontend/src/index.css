@@ -4,3 +4,12 @@
 
 * { box-sizing: border-box; }
 body { margin: 0; font-family: system-ui, -apple-system, sans-serif; }
+
+/* Enhanced MiniMap: bolder viewport indicator */
+.minimap-enhanced .react-flow__minimap-mask {
+  fill: rgba(30, 41, 59, 0.45) !important;
+}
+.minimap-enhanced .react-flow__minimap-node {
+  rx: 2;
+  ry: 2;
+}
