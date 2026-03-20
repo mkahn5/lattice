@@ -37,6 +37,9 @@ export interface AppConfig {
   table_limit: number
   warehouse_id: string
   is_first_run: boolean
+  lineage_backfill_jobs: number
+  lineage_backfill_tables: number
+  lineage_query_limit: number
 }
 
 export interface CostNodeData {

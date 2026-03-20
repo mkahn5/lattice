@@ -204,6 +204,23 @@ def _run_ingestion(gen: int):
 
         if not _alive(): return
 
+        # Lineage-driven backfill: fetch jobs/tables referenced in lineage but not ingested
+        if lineage:
+            set_progress("Backfilling lineage nodes...", 92, gen=gen)
+            try:
+                from server.connectors.lineage_backfill import backfill_from_lineage
+                new_jobs, new_tables = backfill_from_lineage(
+                    w, lineage, jb, uc_data["tables"]
+                )
+                if new_jobs:
+                    jb = jb + new_jobs
+                if new_tables:
+                    uc_data["tables"] = uc_data["tables"] + new_tables
+            except Exception as e:
+                print(f"[lattice:{gen}] Lineage backfill skipped: {e}")
+
+        if not _alive(): return
+
         set_progress("Building graph...", 95, gen=gen)
         data = build_graph(uc_data, wh, cl, jb, db, apps=ap, databases=lakebase,
                            enrichment=enrichment, lineage=lineage,

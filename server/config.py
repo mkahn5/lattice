@@ -54,6 +54,14 @@ def apply_app_config():
         if not os.environ.get("DATABRICKS_WAREHOUSE_ID"):
             os.environ["DATABRICKS_WAREHOUSE_ID"] = cfg["warehouse_id"]
 
+    # Advanced: lineage backfill limits
+    if cfg.get("lineage_backfill_jobs"):
+        os.environ["LATTICE_LINEAGE_BACKFILL_JOBS"] = str(cfg["lineage_backfill_jobs"])
+    if cfg.get("lineage_backfill_tables"):
+        os.environ["LATTICE_LINEAGE_BACKFILL_TABLES"] = str(cfg["lineage_backfill_tables"])
+    if cfg.get("lineage_query_limit"):
+        os.environ["LATTICE_LINEAGE_QUERY_LIMIT"] = str(cfg["lineage_query_limit"])
+
     print(f"[config] Loaded lattice_config.json: catalogs={catalogs or 'all'}")
 
 # Profiles: alphanumerics, hyphens, underscores, dots only (matches Databricks CLI convention)

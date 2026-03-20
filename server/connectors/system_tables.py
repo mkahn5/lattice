@@ -71,6 +71,7 @@ def fetch_enrichment(w: WorkspaceClient, warehouse_id: str) -> dict:
         "job_runs": {},
         "table_access": {},
         "table_storage": {},
+        "table_tags": {},
         "serverless_dbu": 0.0,
     }
 
@@ -184,6 +185,25 @@ def fetch_enrichment(w: WorkspaceClient, warehouse_id: str) -> dict:
                 "query_count_30d": int(r.get("query_count_30d") or 0),
             }
 
+    # --- UC tags (user + system) ---
+    for r in _run_sql(w, warehouse_id, """
+        SELECT
+            LOWER(CONCAT_WS('.', catalog_name, schema_name, table_name)) AS full_name,
+            tag_name,
+            tag_value
+        FROM system.information_schema.table_tags
+        LIMIT 20000
+    """, "table_tags"):
+        fn = r.get("full_name")
+        if fn:
+            enrichment["table_tags"].setdefault(fn, []).append({
+                "key": r.get("tag_name") or "",
+                "value": r.get("tag_value") or "",
+            })
+    tag_count = sum(len(v) for v in enrichment["table_tags"].values())
+    if tag_count:
+        print(f"[system_tables] {tag_count} tags across {len(enrichment['table_tags'])} tables")
+
     return enrichment
 
 
@@ -228,7 +248,11 @@ def fetch_lineage(w: WorkspaceClient, warehouse_id: str) -> list[dict]:
     Returns a list of edge dicts:
         {"edge_type": "feedsInto"|"writesTo"|"readsFrom",
          "source_fqn": str,  "target_fqn": str}
+
+    Query row limit is configurable via LATTICE_LINEAGE_QUERY_LIMIT (default 10000).
     """
+    import os
+    query_limit = int(os.environ.get("LATTICE_LINEAGE_QUERY_LIMIT", "10000"))
     rows: list[dict] = []
     seen: set[tuple] = set()
 
@@ -239,7 +263,7 @@ def fetch_lineage(w: WorkspaceClient, warehouse_id: str) -> list[dict]:
             rows.append({"edge_type": edge_type, "source_fqn": src, "target_fqn": tgt})
 
     # Table → Table lineage
-    for r in _run_sql(w, warehouse_id, """
+    for r in _run_sql(w, warehouse_id, f"""
         SELECT DISTINCT
             LOWER(source_table_full_name) AS src,
             LOWER(target_table_full_name) AS tgt
@@ -248,12 +272,12 @@ def fetch_lineage(w: WorkspaceClient, warehouse_id: str) -> list[dict]:
           AND source_table_full_name IS NOT NULL
           AND target_table_full_name IS NOT NULL
           AND source_table_full_name != target_table_full_name
-        LIMIT 1000
+        LIMIT {query_limit}
     """, "lineage_table"):
         _add("feedsInto", r.get("src", ""), r.get("tgt", ""))
 
     # Job → Table: writesTo (job → target) and readsFrom (job → source)
-    for r in _run_sql(w, warehouse_id, """
+    for r in _run_sql(w, warehouse_id, f"""
         SELECT DISTINCT
             CAST(entity_id AS STRING)          AS job_id,
             LOWER(source_table_full_name)       AS src_table,
@@ -262,7 +286,7 @@ def fetch_lineage(w: WorkspaceClient, warehouse_id: str) -> list[dict]:
         WHERE event_time >= CURRENT_DATE - INTERVAL 30 DAYS
           AND entity_type = 'JOB'
           AND entity_id IS NOT NULL
-        LIMIT 1000
+        LIMIT {query_limit}
     """, "lineage_job"):
         job_id  = r.get("job_id", "")
         src_tbl = r.get("src_table", "")
@@ -284,13 +308,14 @@ def apply_enrichment(nodes: list[dict], enrichment: dict) -> list[dict]:
     job_runs = enrichment.get("job_runs", {})
     table_acc = enrichment.get("table_access", {})
     table_storage = enrichment.get("table_storage", {})
+    table_tags = enrichment.get("table_tags", {})
     serverless_dbu = enrichment.get("serverless_dbu", 0.0)
 
     for node in nodes:
         ntype = node.get("type", "")
         fqn = str(node.get("fqn", ""))
 
-        if ntype in ("Table", "View"):
+        if ntype in ("Table", "View", "StreamingTable", "MaterializedView"):
             acc = table_acc.get(fqn.lower())
             if acc:
                 node["last_queried"] = acc["last_queried"]
@@ -304,6 +329,9 @@ def apply_enrichment(nodes: list[dict], enrichment: dict) -> list[dict]:
             if storage:
                 node["num_rows"] = storage["num_rows"]
                 node["size_mb"] = storage["size_mb"]
+            tags = table_tags.get(fqn.lower())
+            if tags:
+                node["uc_tags"] = tags
 
         elif ntype == "Warehouse":
             dbu = wh_dbu.get(fqn)

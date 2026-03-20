@@ -613,8 +613,26 @@ See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for common issues including:
 
 ## Known Limitations
 
+### Ingestion Limits
+
+Lattice applies default limits to keep ingestion fast and rendering responsive. These can be increased in **Settings → Advanced** at your own risk — higher values increase ingestion time, API calls, and memory usage.
+
+| Setting | Default | Max | What it controls |
+|---------|---------|-----|------------------|
+| Tables / schema | 50 | 1,000 | Tables ingested per schema during primary UC scan |
+| Schemas / catalog | 20 | 500 | Schemas ingested per catalog |
+| Lineage query limit | 10,000 | 100,000 | Rows fetched from `system.access.table_lineage` (table-to-table and job-to-table edges) |
+| Job backfill limit | 500 | 5,000 | Missing jobs fetched individually to complete lineage edges |
+| Table backfill limit | 2,000 | 20,000 | Missing tables fetched individually to complete lineage edges |
+
+**Impact of defaults:** On a workspace with 20K tables and 1K+ jobs, the defaults will capture a subset of the full lineage. Job → Table edges require both the job and table to exist in the graph — the backfill step automatically fetches missing nodes referenced in lineage, but is subject to its own limits.
+
+### Other Limitations
+
 - Column-level cost attribution not yet supported (table-level only)
 - Stub table nodes (from cross-catalog dashboard queries) have no visual legend
 - Health panel orphan detection requires `system.query.history` access
 - Column lineage requires `system.access.column_lineage` grant — silently returns empty if unavailable
+- `system.query.history` only captures SQL warehouse queries — tables read exclusively via Spark clusters appear as "cold"
+- Lineage data uses a 30-day window — infrequently-run pipelines (monthly jobs) may not have edges at time of ingestion
 - File-based JSON caching (not distributed)

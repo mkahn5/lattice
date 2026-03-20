@@ -408,6 +408,9 @@ def get_config():
         "table_limit": cfg.get("table_limit", int(os.environ.get("LATTICE_TABLE_LIMIT", "50"))),
         "warehouse_id": cfg.get("warehouse_id", os.environ.get("DATABRICKS_WAREHOUSE_ID", "")),
         "is_first_run": not os.path.exists(CONFIG_PATH) and not cfg.get("wizard_completed"),
+        "lineage_backfill_jobs": cfg.get("lineage_backfill_jobs", int(os.environ.get("LATTICE_LINEAGE_BACKFILL_JOBS", "500"))),
+        "lineage_backfill_tables": cfg.get("lineage_backfill_tables", int(os.environ.get("LATTICE_LINEAGE_BACKFILL_TABLES", "2000"))),
+        "lineage_query_limit": cfg.get("lineage_query_limit", int(os.environ.get("LATTICE_LINEAGE_QUERY_LIMIT", "10000"))),
     }
 
 
@@ -424,6 +427,9 @@ class ConfigBody(BaseModel):
     schema_limit: int | None = None
     table_limit: int | None = None
     warehouse_id: str | None = None
+    lineage_backfill_jobs: int | None = None
+    lineage_backfill_tables: int | None = None
+    lineage_query_limit: int | None = None
 
 
 @router.post("/api/config")
@@ -465,6 +471,25 @@ async def save_config(body: ConfigBody):
         # Update preflight checker with new warehouse ID
         if _preflight is not None:
             _preflight.warehouse_id = body.warehouse_id
+
+    # Advanced lineage limits
+    if body.lineage_backfill_jobs is not None:
+        limit = max(0, min(body.lineage_backfill_jobs, 5000))
+        os.environ["LATTICE_LINEAGE_BACKFILL_JOBS"] = str(limit)
+        updates["lineage_backfill_jobs"] = limit
+        scope_changed = True
+
+    if body.lineage_backfill_tables is not None:
+        limit = max(0, min(body.lineage_backfill_tables, 20000))
+        os.environ["LATTICE_LINEAGE_BACKFILL_TABLES"] = str(limit)
+        updates["lineage_backfill_tables"] = limit
+        scope_changed = True
+
+    if body.lineage_query_limit is not None:
+        limit = max(1000, min(body.lineage_query_limit, 100000))
+        os.environ["LATTICE_LINEAGE_QUERY_LIMIT"] = str(limit)
+        updates["lineage_query_limit"] = limit
+        scope_changed = True
 
     saved = save_app_config(updates)
 
@@ -863,6 +888,18 @@ async def refresh_graph():
             lineage = fetch_lineage(w, warehouse_id)
         except Exception as e:
             print(f"[refresh] lineage skipped: {e}")
+
+    # Lineage-driven backfill
+    if lineage:
+        try:
+            from server.connectors.lineage_backfill import backfill_from_lineage
+            new_jobs, new_tables = backfill_from_lineage(w, lineage, jb, uc_data["tables"])
+            if new_jobs:
+                jb = jb + new_jobs
+            if new_tables:
+                uc_data["tables"] = uc_data["tables"] + new_tables
+        except Exception as e:
+            print(f"[refresh] lineage backfill skipped: {e}")
 
     data = build_graph(uc_data, wh, cl, jb, db, apps=ap, databases=lakebase,
                        enrichment=enrichment, lineage=lineage,

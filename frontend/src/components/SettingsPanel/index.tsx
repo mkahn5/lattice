@@ -244,6 +244,10 @@ export function SettingsPanel() {
   // saved state removed — panel closes immediately on save
   const [statusSection, setStatusSection] = useState(true)
   const [scopeSection, setScopeSection] = useState(true)
+  const [advancedSection, setAdvancedSection] = useState(false)
+  const [lineageBackfillJobs, setLineageBackfillJobs] = useState(500)
+  const [lineageBackfillTables, setLineageBackfillTables] = useState(2000)
+  const [lineageQueryLimit, setLineageQueryLimit] = useState(10000)
   const loadedRef = useRef(false)
 
   // Workspace Profiles state
@@ -277,6 +281,9 @@ export function SettingsPanel() {
       setSchemaLimit(appConfig.schema_limit ?? 20)
       setTableLimit(appConfig.table_limit ?? 50)
       setWarehouseId(appConfig.warehouse_id ?? '')
+      setLineageBackfillJobs(appConfig.lineage_backfill_jobs ?? 500)
+      setLineageBackfillTables(appConfig.lineage_backfill_tables ?? 2000)
+      setLineageQueryLimit(appConfig.lineage_query_limit ?? 10000)
     }
   }, [appConfig])
 
@@ -304,7 +311,11 @@ export function SettingsPanel() {
 
   const handleSave = async () => {
     setSaving(true)
-    await saveConfig({ catalogs, schema_limit: schemaLimit, table_limit: tableLimit, warehouse_id: warehouseId })
+    await saveConfig({
+      catalogs, schema_limit: schemaLimit, table_limit: tableLimit, warehouse_id: warehouseId,
+      lineage_backfill_jobs: lineageBackfillJobs, lineage_backfill_tables: lineageBackfillTables,
+      lineage_query_limit: lineageQueryLimit,
+    })
     setSaving(false)
     setShowSettings(false)
   }
@@ -649,6 +660,78 @@ export function SettingsPanel() {
                     SQL fixes must be run by a <strong>workspace admin</strong>. After applying grants, click Re-check.
                   </p>
                 )}
+              </div>
+            )}
+          </div>
+
+          {/* ── Advanced: Lineage limits ── */}
+          <div className="px-6 py-4 border-t border-gray-50">
+            <button
+              onClick={() => setAdvancedSection(v => !v)}
+              className="w-full flex items-center justify-between text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-1"
+            >
+              <span className="flex items-center gap-1">Advanced <FlaskConical size={10} /></span>
+              {advancedSection ? <ChevronUp size={11} /> : <ChevronDown size={11} />}
+            </button>
+            {advancedSection && (
+              <div className="mt-2 space-y-3">
+                <div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                  <p className="text-[10px] text-amber-800 leading-relaxed">
+                    <strong>Increase at your own risk.</strong> Higher limits improve lineage coverage but increase
+                    ingestion time, API calls, and memory usage. Large workspaces (10K+ tables) may
+                    cause slow rendering or timeouts.
+                  </p>
+                </div>
+                <div>
+                  <div className="text-[11px] text-gray-500 mb-1.5">Lineage query limit</div>
+                  <p className="text-[9px] text-gray-400 mb-1">
+                    Max rows fetched from system.access.table_lineage (table-to-table and job-to-table).
+                  </p>
+                  <input
+                    type="number"
+                    min={1000}
+                    max={100000}
+                    step={1000}
+                    value={lineageQueryLimit}
+                    onChange={e => setLineageQueryLimit(Number(e.target.value))}
+                    className="w-full border border-gray-200 rounded px-2 py-1 text-[11px] focus:outline-none focus:ring-1 focus:ring-indigo-400"
+                  />
+                  <p className="text-[9px] text-gray-400 mt-0.5">Default: 10,000 &middot; Range: 1,000 – 100,000</p>
+                </div>
+                <div className="flex gap-4">
+                  <label className="flex-1 text-[10px] text-gray-500">
+                    Job backfill limit
+                    <p className="text-[9px] text-gray-400 mb-1 font-normal">
+                      Max jobs fetched individually to fill lineage gaps.
+                    </p>
+                    <input
+                      type="number"
+                      min={0}
+                      max={5000}
+                      step={100}
+                      value={lineageBackfillJobs}
+                      onChange={e => setLineageBackfillJobs(Number(e.target.value))}
+                      className="w-full border border-gray-200 rounded px-2 py-1 text-[11px] focus:outline-none focus:ring-1 focus:ring-indigo-400"
+                    />
+                    <p className="text-[9px] text-gray-400 mt-0.5">Default: 500</p>
+                  </label>
+                  <label className="flex-1 text-[10px] text-gray-500">
+                    Table backfill limit
+                    <p className="text-[9px] text-gray-400 mb-1 font-normal">
+                      Max tables fetched individually to fill lineage gaps.
+                    </p>
+                    <input
+                      type="number"
+                      min={0}
+                      max={20000}
+                      step={500}
+                      value={lineageBackfillTables}
+                      onChange={e => setLineageBackfillTables(Number(e.target.value))}
+                      className="w-full border border-gray-200 rounded px-2 py-1 text-[11px] focus:outline-none focus:ring-1 focus:ring-indigo-400"
+                    />
+                    <p className="text-[9px] text-gray-400 mt-0.5">Default: 2,000</p>
+                  </label>
+                </div>
               </div>
             )}
           </div>

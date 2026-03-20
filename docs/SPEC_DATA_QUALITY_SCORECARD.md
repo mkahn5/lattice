@@ -1,4 +1,4 @@
-# Lattice Data Quality Scorecard — Feature Spec
+# Lattice Workspace Governance Score — Feature Spec
 
 **Author:** Mike Kahn
 **Status:** Draft — awaiting review
@@ -43,8 +43,11 @@ interpreting the canvas.
 **Bottom line:** The scorecard is a **workspace hygiene score**, not a true data
 quality score. It measures operational governance — are assets maintained, used,
 documented, and traceable? It cannot measure whether the data itself is correct.
-The name should reflect this: **"Workspace Health Score"** rather than
-"Data Quality Scorecard."
+The name should reflect this: **"Workspace Governance Score"** rather than
+"Data Quality Scorecard." The governance framing signals strategic value
+to platform teams and leadership while remaining honest about what's measured.
+Subtitle/tooltip: *"Measures operational governance — asset freshness, pipeline
+reliability, lineage coverage, cost efficiency, and documentation."*
 
 ---
 
@@ -52,7 +55,7 @@ The name should reflect this: **"Workspace Health Score"** rather than
 
 All inputs already exist in Lattice's graph. No new system table queries required.
 
-### 1. Freshness (25% weight)
+### 1. Freshness (30% weight)
 
 **Metric:** % of tables/views that are hot or warm (queried within 30 days)
 **Source:** `heat` field on Table/View nodes (from `system.query.history`)
@@ -65,7 +68,7 @@ All inputs already exist in Lattice's graph. No new system table queries require
 | 25 | ≥30% hot/warm |
 | 0 | <30% hot/warm |
 
-**Why 25%:** Most reliable signal. Based on actual query execution timestamps.
+**Why 30%:** Most reliable signal. Based on actual query execution timestamps.
 Cold tables are either abandoned or accessed outside the SQL warehouse path
 (Spark direct reads won't appear in `system.query.history`).
 
@@ -73,7 +76,7 @@ Cold tables are either abandoned or accessed outside the SQL warehouse path
 may appear cold even if actively used. This is a `system.query.history`
 limitation. The scorecard should note this.
 
-### 2. Job Reliability (25% weight)
+### 2. Job Reliability (15% weight)
 
 **Metric:** Weighted average `success_rate_pct` across all jobs with runs in the last 30 days
 **Source:** `success_rate_pct`, `total_runs_30d` on Job nodes (from `system.lakeflow.job_run_timeline`)
@@ -89,9 +92,13 @@ limitation. The scorecard should note this.
 Weighted by run count — a job that runs 1000 times at 90% matters more than
 one that ran twice at 50%.
 
-**Why 25%:** Objective, high-signal metric. Failed jobs mean broken pipelines.
+**Why 15% (reduced from 25%):** The raw success rate is noisy — it conflates
+expected failures (retry patterns, conditional/sensor jobs), canceled runs,
+dev/test failures, and actual reliability issues. The ingestion cap (200 jobs)
+also means we may score a subset. Reduced weight reflects this lower confidence.
+Failing jobs still surface prominently in the worst offenders list.
 
-### 3. Lineage Coverage (20% weight)
+### 3. Lineage Coverage (25% weight)
 
 **Metric:** % of tables that have at least one incoming OR outgoing lineage edge
 **Source:** Graph edge count per Table/View node (from `system.access.table_lineage`)
@@ -104,8 +111,9 @@ one that ran twice at 50%.
 | 25 | ≥20% |
 | 0 | <20% |
 
-**Why 20%:** Lineage is the foundation of impact analysis and governance.
-Tables without lineage are invisible to dependency tracking.
+**Why 25% (increased from 20%):** Lineage is the foundation of impact analysis
+and governance. Tables without lineage are invisible to dependency tracking.
+Binary signal (edges exist or they don't) — high confidence.
 
 **Known blind spot:** Lineage only captures the last 30 days of
 `system.access.table_lineage`. Infrequently-run pipelines (monthly jobs) may
@@ -170,7 +178,7 @@ workspaces that use IaC (where everything is created by a SP). Included because
 ## Composite Score
 
 ```
-score = (freshness × 0.25) + (job_reliability × 0.25) + (lineage × 0.20)
+score = (freshness × 0.30) + (job_reliability × 0.15) + (lineage × 0.25)
        + (cost_efficiency × 0.15) + (documentation × 0.10) + (contact × 0.05)
 ```
 
@@ -189,12 +197,12 @@ Total: 100 points max.
 ## Dependency: Enrichment Required
 
 The scorecard is **only meaningful when system table enrichment is available**.
-Without it, Freshness (25%), Job Reliability (25%), Cost Efficiency (15%),
-and Lineage Coverage (20%) — 85% of the score — have no data.
+Without it, Freshness (30%), Job Reliability (15%), Cost Efficiency (15%),
+and Lineage Coverage (25%) — 85% of the score — have no data.
 
 If enrichment is unavailable:
 - Do NOT show a score
-- Show a message: "Workspace Health Score requires system table access.
+- Show a message: "Workspace Governance Score requires system table access.
   Configure a SQL warehouse and grant access to system tables in Settings."
 - Link to the Settings panel preflight checks
 
@@ -294,7 +302,7 @@ New collapsible section in the sidebar, between the existing Health section
 and the Cost section:
 
 ```
-▾ Workspace Health          72 / 100  [B]
+▾ Governance Score          72 / 100  [B]
   ████████████████░░░░  (color bar)
 
   Freshness         85%  ████████░░
@@ -348,10 +356,10 @@ existing Health and Cost sections. Keeps the tool simple.
 
 ## Open Questions
 
-1. **Naming:** "Workspace Health Score" vs "Governance Score" vs something else?
+1. ~~**Naming:**~~ Decided: **Workspace Governance Score**
 2. **Thresholds:** Are the score brackets right, or should they be more/less forgiving?
-3. **Weight distribution:** 50% on Freshness + Jobs feels right since they're the
-   most reliable signals. Documentation and Contact are deliberately low. Agree?
+3. ~~**Weight distribution:**~~ Decided: Freshness 30%, Lineage 25%, Job Reliability 15%,
+   Cost Efficiency 15%, Documentation 10%, Contact 5%.
 4. **Cold table caveat:** Should we add a toggle to exclude tables that are known
    to be Spark-only (no SQL warehouse access)? Or just note the blind spot?
 5. **Service principal detection:** What patterns should flag a `created_by` as

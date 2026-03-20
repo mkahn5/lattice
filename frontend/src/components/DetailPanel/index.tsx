@@ -50,6 +50,8 @@ const SKIP_KEYS = new Set([
   'table_fqns', 'cluster_ids', 'uses_serverless', 'stub', 'catalog_name', 'schema_name',
   // shown elsewhere
   'connection_type', 'num_rows', 'size_mb',
+  // rendered in dedicated sections
+  'uc_tags', 'source_tables', 'backfilled',
   ...USAGE_KEYS,
 ])
 
@@ -331,6 +333,25 @@ export function DetailPanel() {
       <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4">
         {/* Usage */}
         <UsageSection node={node} />
+
+        {/* UC Tags */}
+        {Array.isArray(node.uc_tags) && (node.uc_tags as Array<{key: string; value: string}>).length > 0 && (
+          <section>
+            <div className="text-[10px] uppercase tracking-wider text-gray-400 mb-2 font-semibold">UC Tags</div>
+            <div className="flex flex-wrap gap-1">
+              {(node.uc_tags as Array<{key: string; value: string}>).map((t, i) => (
+                <span
+                  key={i}
+                  className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 text-[10px] border border-indigo-100"
+                  title={t.value ? `${t.key}=${t.value}` : t.key}
+                >
+                  <span className="font-medium">{t.key}</span>
+                  {t.value && <span className="text-indigo-400">={t.value}</span>}
+                </span>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Cost Attribution */}
         <CostSection node={node} />

@@ -503,8 +503,10 @@ export function Canvas() {
 
       if (searchQuery) {
         const q = searchQuery.toLowerCase()
+        const tagStr = (n.uc_tags as Array<{key: string; value: string}> | undefined)
+          ?.map(t => `${t.key} ${t.value}`).join(' ') ?? ''
         const hay =
-          `${n.name} ${n.fqn} ${n.owner ?? ''} ${n.comment ?? ''}`.toLowerCase()
+          `${n.name} ${n.fqn} ${n.owner ?? ''} ${n.comment ?? ''} ${tagStr}`.toLowerCase()
         if (!hay.includes(q)) return false
       }
       return true

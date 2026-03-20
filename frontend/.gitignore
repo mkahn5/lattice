@@ -8,7 +8,8 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
-dist
+# dist is committed for Databricks App deployment (no Node.js in app runtime)
+# dist
 dist-ssr
 *.local
 
