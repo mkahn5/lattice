@@ -431,7 +431,7 @@ function IngestionStatus() {
           </div>
 
           {/* Timing note */}
-          {isRunning && pct < 50 && (
+          {isRunning && (
             <div className="text-[9px] text-gray-400 italic pt-0.5 border-t border-gray-100">
               Initial ingestion typically takes 30–90 seconds
             </div>
