@@ -430,9 +430,16 @@ function IngestionStatus() {
             })}
           </div>
 
+          {/* Timing note */}
+          {isRunning && pct < 50 && (
+            <div className="text-[9px] text-gray-400 italic pt-0.5 border-t border-gray-100">
+              Initial ingestion typically takes 30–90 seconds
+            </div>
+          )}
+
           {/* Raw step text */}
           {isRunning && (
-            <div className="text-[9px] text-gray-300 truncate pt-0.5 border-t border-gray-100" title={step}>
+            <div className="text-[9px] text-gray-300 truncate pt-0.5" title={step}>
               {step}
             </div>
           )}
@@ -650,7 +657,7 @@ const GUIDE_STEPS = [
   },
   {
     title: 'Multi-Select',
-    content: 'Select multiple nodes at once using two methods:\n\n• Shift + drag on empty canvas — draw a rubber-band box to select all nodes inside\n• Shift + click individual nodes — toggle each node in/out of the selection\n• Cmd/Ctrl + A — select all visible nodes\n• Escape — clear the selection\n\nWhen 2+ nodes are selected, the right panel switches to bulk-tag mode.',
+    content: 'Select multiple nodes at once using two methods:\n\n• Shift + drag on empty canvas — draw a rubber-band box to select all nodes inside\n• Shift + click on a node name — toggle each node in/out of the selection\n• Cmd/Ctrl + A — select all visible nodes\n• Escape — clear the selection\n\nImportant: Click on the node name text, not the background area. When 2+ nodes are selected, the right panel switches to bulk-tag mode.\n\nTip: Multi-select works best with ~500 or fewer nodes on canvas. Use type filters or search to narrow down first.',
   },
   {
     title: 'Focus & Radial Layout',
