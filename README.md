@@ -430,6 +430,18 @@ After first launch, configure catalog scope, limits, and warehouse in **Settings
 
 ## Release Notes
 
+### v0.5.2 — AI/ML Stack Connectors (Mar 19, 2026)
+- **Model Serving Endpoints:** Discovers all Model Serving and AI Gateway endpoints. Links each endpoint to the UC registered models it serves via `serves` edges. Shows endpoint state and creator.
+- **Vector Search Indexes:** Discovers all Vector Search indexes across endpoints. Links each index to its source Delta table (`indexesFrom`) and embedding model endpoint (`embeddedBy`). Surfaces index type and sync status.
+- **Genie Spaces:** Discovers all Genie AI/BI rooms. Links each space to its SQL warehouse (`runsOn`) and configured tables (`queries`). Shows space description and creator.
+- **23 node types** (up from 20): ServingEndpoint, VectorSearchIndex, GenieSpace join the graph alongside all existing UC, compute, and federation types.
+- **15+ edge types** (up from 10+): New relationships — `serves`, `indexesFrom`, `embeddedBy` — complete the AI stack path: Table → VectorSearchIndex → ServingEndpoint → Model, plus Genie → Warehouse/Table.
+- **Full AI pipeline visibility:** See the complete path from source tables through vector indexes and embedding endpoints to serving endpoints and Genie spaces — all in a single graph.
+- **Graceful fallback:** All three connectors run in the parallel fetch pool with 45s timeouts. If an API isn't available on a workspace (e.g., no Vector Search provisioned), that connector returns empty and the rest of the graph loads normally.
+- **Console URL links:** ServingEndpoint nodes link to `/ml/endpoints/{name}`, GenieSpace nodes link to `/genie/rooms/{id}`.
+- **Swimlane & type filters updated:** New types appear in the correct lanes — VectorSearchIndex in the UC group, ServingEndpoint and GenieSpace in the Compute group.
+- **Edge legend updated:** Three new edge types (serves, indexesFrom, embeddedBy) appear in the Edge Types panel with matching colors.
+
 ### v0.5.1 — Multi-Workspace & Screenshots (Mar 18, 2026)
 - **Workspace profiles in Settings:** Add, edit, test, and delete workspace profiles (name + host + PAT) directly in the Settings UI. Profiles stored in `lattice_config.json` alongside CLI profiles from `~/.databrickscfg`.
 - **Setup wizard — Workspaces step:** New step 3 in the first-run wizard lets users add additional workspaces during initial setup.
@@ -516,10 +528,13 @@ After first launch, configure catalog scope, limits, and warehouse in **Settings
 | 3 | Security hardening + ingestion stability | Done |
 | 4 | Intelligence: health, impact analysis, column lineage, JSON-LD | Done |
 | 5 | First-run wizard, permissions checker, settings, bundle packaging | Done |
-| 6 | Ontology writeback: edit owner, description, tags inline → write back to UC. Draft/publish workflow with diff view. Closes the loop from read-only ontology to actionable platform management | Planned |
-| 7 | MCP server: expose graph as Claude tool (search, lineage, impact, orphans) | Planned |
-| 8 | Multi-workspace, RBAC, upgrade path, telemetry | Planned |
-| 10 | Annotation & Bookmarking: tags, notes, canvas dots, tag filter, multi-select, UC sync | Designed |
+| 5.1 | Multi-workspace profiles, screenshots, UX polish | Done |
+| 5.2 | AI/ML stack connectors: Serving Endpoints, Vector Search, Genie Spaces | Done |
+| 10 | Annotation & Bookmarking: tags, notes, canvas dots, tag filter, multi-select, UC sync | Done |
+| 6 | MCP server: expose graph as agent-callable tools (search, lineage, impact, orphans) | Planned |
+| 7 | Automated architecture diagram export (Mermaid, draw.io, Lucidchart) | Planned |
+| 8 | Governance scorecard: workspace health score with trend over time | Planned |
+| 9 | Ontology writeback: edit owner, description, tags inline → write back to UC. Draft/publish workflow | Planned |
 
 ---
 
