@@ -806,8 +806,11 @@ export function Canvas() {
   )
 
   // Persist drag positions so filter changes don't reset them
-  const onNodeDragStop = useCallback((_: unknown, node: Node) => {
-    savedPositions.current.set(node.id, node.position)
+  const onNodeDragStop = useCallback((_: unknown, _node: Node, nodes: Node[]) => {
+    // When dragging a group, ReactFlow passes all dragged nodes in the third arg
+    for (const n of nodes) {
+      savedPositions.current.set(n.id, n.position)
+    }
     userModifiedLayout.current = true
   }, [])
 
