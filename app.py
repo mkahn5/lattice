@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 load_dotenv()
 
-__version__ = "0.5.1"
+__version__ = "0.5.2"
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
@@ -17,6 +17,9 @@ from server.connectors import apps as apps_connector
 from server.connectors.federation import fetch_connections, fetch_shares, fetch_recipients
 from server.connectors.system_tables import fetch_enrichment, fetch_lineage, fetch_column_lineage
 from server.connectors.pipelines import fetch_pipelines
+from server.connectors.serving_endpoints import fetch_serving_endpoints
+from server.connectors.vector_search import fetch_vector_search_indexes
+from server.connectors.genie import fetch_genie_spaces
 from server.graph.builder import build_graph
 
 CACHE_DIR = os.path.join(os.path.dirname(__file__), ".cache")
@@ -128,6 +131,9 @@ def _run_ingestion(gen: int):
         f_sh = ex.submit(fetch_shares, w)
         f_rc = ex.submit(fetch_recipients, w)
         f_pl = ex.submit(fetch_pipelines, w, int(os.environ.get("LATTICE_PIPELINE_LIMIT", "200")))
+        f_se = ex.submit(fetch_serving_endpoints, w)
+        f_vs = ex.submit(fetch_vector_search_indexes, w)
+        f_gs = ex.submit(fetch_genie_spaces, w)
         wh         = _safe(f_wh)
         cl         = _safe(f_cl)
         jb         = _safe(f_jb)
@@ -138,6 +144,9 @@ def _run_ingestion(gen: int):
         shares     = _safe(f_sh)
         recipients = _safe(f_rc)
         pl         = _safe(f_pl)
+        serving    = _safe(f_se)
+        vs_indexes = _safe(f_vs)
+        genie      = _safe(f_gs)
         ex.shutdown(wait=False)  # don't block on hung threads
 
         if not _alive(): return
@@ -147,7 +156,8 @@ def _run_ingestion(gen: int):
         empty_uc = {"catalogs": [], "schemas": [], "tables": [], "models": []}
         partial = build_graph(empty_uc, wh, cl, jb, db, apps=ap, databases=lakebase,
                               connections=conns, shares=shares, recipients=recipients,
-                              pipelines=pl)
+                              pipelines=pl, serving_endpoints=serving,
+                              vector_search_indexes=vs_indexes, genie_spaces=genie)
         set_graph(partial, host=w.config.host or "", gen=gen)
         print(f"[lattice:{gen}] Partial graph ready: {partial['stats']['node_count']} nodes")
 
@@ -198,7 +208,8 @@ def _run_ingestion(gen: int):
         data = build_graph(uc_data, wh, cl, jb, db, apps=ap, databases=lakebase,
                            enrichment=enrichment, lineage=lineage,
                            connections=conns, shares=shares, recipients=recipients,
-                           pipelines=pl)
+                           pipelines=pl, serving_endpoints=serving,
+                           vector_search_indexes=vs_indexes, genie_spaces=genie)
         data["host"] = w.config.host or ""
         set_graph(data, host=data["host"], gen=gen)
         set_column_lineage(col_lineage, gen=gen)

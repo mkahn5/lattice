@@ -20,7 +20,7 @@
 
 **Action:** Slow scroll down through lanes showing the scale.
 
-> "Lattice maps 3,600 assets across 19 types — catalogs, tables, jobs, warehouses, apps — all discovered automatically. No manual inventory. No spreadsheets."
+> "Lattice maps 3,600 assets across 23 types — catalogs, tables, jobs, warehouses, apps, serving endpoints, vector search indexes, Genie spaces — all discovered automatically. No manual inventory. No spreadsheets."
 
 ---
 
@@ -93,13 +93,15 @@
 ```
 I built an open-source ontology tool for Databricks workspaces.
 
-It maps every UC asset, warehouse, job, dashboard, and app
+It maps every UC asset, warehouse, job, dashboard, app,
+serving endpoint, vector search index, and Genie space
 into a single interactive knowledge graph.
 
-3,600+ assets. 19 node types. Zero external infrastructure.
+3,600+ assets. 23 node types. Zero external infrastructure.
 
 What it does:
 → Visual topology of your entire workspace
+→ Full AI/ML stack: Serving Endpoints → Models → Vector Search → Genie
 → Cost attribution per asset (DBU heatmap)
 → Orphan detection (stale tables, no owner)
 → Activity timeline (hot/warm/cold assets)

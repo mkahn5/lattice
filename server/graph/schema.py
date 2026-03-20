@@ -19,6 +19,9 @@ NODE_COLORS = {
     "Connection": "#78716c",        # stone
     "Share": "#d946ef",             # fuchsia
     "Recipient": "#fb923c",         # light orange
+    "ServingEndpoint": "#e11d48",   # rose-600 (AI/ML serving)
+    "VectorSearchIndex": "#7c3aed", # violet-600 (search/retrieval)
+    "GenieSpace": "#2563eb",        # blue-600 (AI/BI)
 }
 
 NODE_ICONS = {
@@ -42,4 +45,7 @@ NODE_ICONS = {
     "Connection": "plug",
     "Share": "share-2",
     "Recipient": "user-check",
+    "ServingEndpoint": "radio",
+    "VectorSearchIndex": "search",
+    "GenieSpace": "message-circle",
 }

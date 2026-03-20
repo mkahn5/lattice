@@ -17,6 +17,9 @@ def build_graph(
     recipients: list | None = None,
     volumes: list | None = None,
     pipelines: list | None = None,
+    serving_endpoints: list | None = None,
+    vector_search_indexes: list | None = None,
+    genie_spaces: list | None = None,
 ) -> dict:
     G = nx.DiGraph()
 
@@ -68,6 +71,18 @@ def build_graph(
     # Add pipeline nodes
     for pl in (pipelines or []):
         add_node(pl)
+
+    # Add serving endpoint nodes
+    for ep in (serving_endpoints or []):
+        add_node(ep)
+
+    # Add vector search index nodes
+    for vs in (vector_search_indexes or []):
+        add_node(vs)
+
+    # Add Genie space nodes
+    for gs in (genie_spaces or []):
+        add_node(gs)
 
     # Structural edges: Catalog -> Schema
     schema_by_cat: dict[str, list] = {}
@@ -223,6 +238,44 @@ def build_graph(
             cat_id = catalog_by_name.get(cat_name.lower())
             if cat_id:
                 G.add_edge(app["id"], cat_id, relationship="uses", label="uses")
+
+    # ServingEndpoint -> Model (serves) — link endpoints to UC registered models
+    model_fqn_to_id = {
+        str(data.get("fqn", "")).lower(): nid
+        for nid, data in G.nodes(data=True)
+        if data.get("type") == "Model"
+    }
+    for ep in (serving_endpoints or []):
+        for model_name in ep.get("model_names", []):
+            model_id = model_fqn_to_id.get(model_name.lower())
+            if model_id:
+                G.add_edge(ep["id"], model_id, relationship="serves", label="serves")
+
+    # VectorSearchIndex -> Table (indexesFrom) — source table for the index
+    # VectorSearchIndex -> ServingEndpoint (embeddedBy) — embedding model endpoint
+    serving_by_name = {ep["name"].lower(): ep["id"] for ep in (serving_endpoints or [])}
+    for vs in (vector_search_indexes or []):
+        src_table = vs.get("source_table", "")
+        if src_table:
+            tgt_id = table_fqn_to_id.get(src_table)
+            if tgt_id:
+                G.add_edge(vs["id"], tgt_id, relationship="indexesFrom", label="indexes from")
+        embed_ep = vs.get("embedding_endpoint", "")
+        if embed_ep:
+            ep_id = serving_by_name.get(embed_ep.lower())
+            if ep_id:
+                G.add_edge(vs["id"], ep_id, relationship="embeddedBy", label="embedded by")
+
+    # GenieSpace -> Warehouse (runsOn) — Genie space runs queries on a warehouse
+    # GenieSpace -> Table (queries) — Genie space is configured with specific tables
+    for gs in (genie_spaces or []):
+        wh_id = gs.get("warehouse_id", "")
+        if wh_id and wh_id in warehouse_by_id:
+            G.add_edge(gs["id"], warehouse_by_id[wh_id], relationship="runsOn", label="runs on")
+        for tbl_fqn in gs.get("table_identifiers", []):
+            tgt_id = table_fqn_to_id.get(tbl_fqn)
+            if tgt_id:
+                G.add_edge(gs["id"], tgt_id, relationship="queries", label="queries")
 
     # Lineage edges (table→table feedsInto, job→table writesTo/readsFrom)
     if lineage:

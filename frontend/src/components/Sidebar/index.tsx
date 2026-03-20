@@ -755,8 +755,8 @@ function GettingStartedModal({ onClose }: { onClose: () => void }) {
 
 const ALL_TYPES: NodeType[] = [
   'Catalog', 'Schema', 'Table', 'View', 'Model', 'Volume', 'StreamingTable', 'MaterializedView', 'Database',
-  'ForeignCatalog', 'Connection', 'Share', 'Recipient',
-  'Warehouse', 'Serverless', 'Cluster', 'Job', 'Dashboard', 'Pipeline', 'App',
+  'ForeignCatalog', 'Connection', 'Share', 'Recipient', 'VectorSearchIndex',
+  'Warehouse', 'Serverless', 'Cluster', 'Job', 'Dashboard', 'Pipeline', 'App', 'ServingEndpoint', 'GenieSpace',
 ]
 
 const TYPE_COLORS: Record<NodeType, string> = {
@@ -764,10 +764,11 @@ const TYPE_COLORS: Record<NodeType, string> = {
   Model: '#ec4899', Volume: '#92400e', StreamingTable: '#0369a1', MaterializedView: '#7c3aed', Database: '#84cc16',
   ForeignCatalog: '#f43f5e', Connection: '#78716c', Share: '#d946ef', Recipient: '#fb923c',
   Warehouse: '#f97316', Serverless: '#06b6d4', Cluster: '#6b7280', Job: '#a855f7', Dashboard: '#f59e0b', Pipeline: '#b91c1c', App: '#0ea5e9',
+  ServingEndpoint: '#e11d48', VectorSearchIndex: '#7c3aed', GenieSpace: '#2563eb',
 }
 
-const UC_TYPES = new Set(['Catalog', 'Schema', 'Table', 'View', 'Model', 'Volume', 'StreamingTable', 'MaterializedView', 'Database', 'ForeignCatalog', 'Connection', 'Share', 'Recipient'])
-const COMPUTE_TYPES = new Set(['Warehouse', 'Serverless', 'Cluster', 'Job', 'Dashboard', 'App', 'Pipeline'])
+const UC_TYPES = new Set(['Catalog', 'Schema', 'Table', 'View', 'Model', 'Volume', 'StreamingTable', 'MaterializedView', 'Database', 'ForeignCatalog', 'Connection', 'Share', 'Recipient', 'VectorSearchIndex'])
+const COMPUTE_TYPES = new Set(['Warehouse', 'Serverless', 'Cluster', 'Job', 'Dashboard', 'App', 'Pipeline', 'ServingEndpoint', 'GenieSpace'])
 
 interface Profile { name: string; host: string; active: boolean; source?: 'lattice' | 'databrickscfg' | 'app' | 'env' }
 interface CatalogInfo { name: string; type: string; active: boolean }

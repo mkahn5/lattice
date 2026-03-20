@@ -15,20 +15,25 @@
     └──┬─────┬──┘
   ┌────┴──┐ ┌┴────────┐    ┌───────────┐    ┌───────────┐
   │ Table │ │  View   │<───│ Dashboard │───>│ Warehouse │
-  └───┬───┘ └─────────┘    └───────────┘    └───────────┘
-      │ feedsInto                ▲
-      v                         │ queries
-  ┌───────┐    ┌───────┐    ┌───┴───┐
-  │ Table │<───│  Job  │───>│Cluster│
-  └───────┘    └───────┘    └───────┘
-               writesTo      runsOn
+  └─┬──┬──┘ └─────────┘    └───────────┘    └─────┬─────┘
+    │  │ feedsInto                ▲                 │
+    │  v                         │ queries          │ runsOn
+    │ ┌───────┐    ┌───────┐  ┌──┴────┐       ┌────┴──────┐
+    │ │ Table │<───│  Job  │─>│Cluster│       │GenieSpace │
+    │ └───────┘    └───────┘  └───────┘       └───────────┘
+    │              writesTo    runsOn
+    │ indexesFrom
+    v                  serves          embeddedBy
+  ┌──────────────┐   ┌────────────────┐   ┌───────┐
+  │ VectorSearch │──>│ServingEndpoint │──>│ Model │
+  └──────────────┘   └────────────────┘   └───────┘
 ```
 
 # Lattice
 
 **Ontology and visual intelligence platform for Databricks workspaces.**
 
-Lattice builds a live ontology of your Databricks environment — every Unity Catalog asset, compute resource, job, dashboard, app, and connected system mapped as typed entities with semantic relationships, enriched with operational intelligence from system tables. Built for data teams and AI agents alike.
+Lattice builds a live ontology of your Databricks environment — every Unity Catalog asset, compute resource, job, dashboard, app, serving endpoint, vector search index, Genie space, and connected system mapped as typed entities with semantic relationships, enriched with operational intelligence from system tables. Built for data teams and AI agents alike.
 
 ![Stack](https://img.shields.io/badge/React-19-blue) ![Stack](https://img.shields.io/badge/FastAPI-0.115-green) ![Stack](https://img.shields.io/badge/NetworkX-3.x-orange) ![Stack](https://img.shields.io/badge/Databricks_SDK-0.40+-red)
 
@@ -40,7 +45,7 @@ Lattice builds a live ontology of your Databricks environment — every Unity Ca
 
 ### Main Canvas — Full Graph View
 ![Main Canvas](docs/screenshots/01-main-canvas.png)
-*3,630 assets mapped across 19 node types with activity timeline, health panel, and type filters.*
+*3,630 assets mapped across 23 node types with activity timeline, health panel, and type filters.*
 
 ### Detail Panel — Asset Intelligence
 ![Detail Panel](docs/screenshots/02-detail-panel.png)
@@ -115,9 +120,9 @@ Lattice builds a live ontology of your Databricks environment — every Unity Ca
 
 ## What It Does
 
-- **Models** your workspace as a live ontology — typed entities (19 node types) with semantic relationships (10+ edge types), forming a complete platform knowledge graph
-- **Discovers** every asset — catalogs, schemas, tables, views, models, volumes, warehouses, clusters, jobs, dashboards, apps, pipelines, Delta Shares, foreign catalogs, and Lakebase databases
-- **Connects** them with structural, compute, lineage, and federation edges that carry meaning (contains, runsOn, queries, feedsInto, writesTo, readsFrom)
+- **Models** your workspace as a live ontology — typed entities (23 node types) with semantic relationships (15+ edge types), forming a complete platform knowledge graph
+- **Discovers** every asset — catalogs, schemas, tables, views, models, volumes, warehouses, clusters, jobs, dashboards, apps, pipelines, Delta Shares, foreign catalogs, Lakebase databases, model serving endpoints, vector search indexes, and Genie spaces
+- **Connects** them with structural, compute, lineage, AI, and federation edges that carry meaning (contains, runsOn, queries, feedsInto, writesTo, readsFrom, serves, indexesFrom, embeddedBy)
 - **Enriches** with system table data — DBU spend, query frequency, heat (last-accessed age), job success rates, storage size
 - **Visualizes** the ontology on an interactive canvas with multiple layout modes, search, filters, and drill-down
 - **Analyzes** cost attribution, impact/blast radius, orphaned assets, and column-level lineage
@@ -129,8 +134,8 @@ Lattice builds a live ontology of your Databricks environment — every Unity Ca
 ## Features
 
 ### Graph & Canvas
-- **19 node types:** Catalog, ForeignCatalog, Schema, Table, View, Model, Volume, StreamingTable, MaterializedView, Warehouse, Serverless, Cluster, Job, Dashboard, App, Pipeline, Connection, Share, Recipient, Database
-- **10+ edge types:** contains, runsOn, queries, feedsInto, writesTo, readsFrom, triggers, uses, exposes, includes
+- **23 node types:** Catalog, ForeignCatalog, Schema, Table, View, Model, Volume, StreamingTable, MaterializedView, Warehouse, Serverless, Cluster, Job, Dashboard, App, Pipeline, Connection, Share, Recipient, Database, ServingEndpoint, VectorSearchIndex, GenieSpace
+- **15+ edge types:** contains, runsOn, queries, feedsInto, writesTo, readsFrom, triggers, uses, exposes, includes, serves, indexesFrom, embeddedBy
 - **3 layout modes:** Tree (top-down), Tree (left-right), Swimlane (grouped by type)
 - **Schema collapse/expand** to manage large catalogs
 - **Search** across name, FQN, comment, and owner
@@ -160,6 +165,11 @@ Lattice builds a live ontology of your Databricks environment — every Unity Ca
 - **Bulk tagging** across multiple nodes via multi-select
 - **UC tag sync** — optionally writes `lattice_`-prefixed tags back to Unity Catalog native tags
 - **Persistent** — stored in `lattice.metadata.annotations` Delta table, survives redeploys
+
+### AI/ML Stack
+- **Model Serving Endpoints** — AI Gateway and custom model serving, linked to UC registered models
+- **Vector Search Indexes** — indexes linked to source tables and embedding endpoints (RAG pipeline visibility)
+- **Genie Spaces** — AI/BI rooms linked to warehouses and configured tables
 
 ### Federation & Connected Systems
 - **Foreign catalogs** (Snowflake, PostgreSQL, MySQL connections)
@@ -204,7 +214,7 @@ Lattice builds a live ontology of your Databricks environment — every Unity Ca
 | **Workspace access** | Permission to create Databricks Apps |
 | **GitHub PAT** | Read-only access to the Lattice repo |
 
-With just these, Lattice discovers and visualizes all UC assets, compute resources, jobs, dashboards, and apps — full topology, search, filtering, layout modes, focus view, and export.
+With just these, Lattice discovers and visualizes all UC assets, compute resources, jobs, dashboards, apps, serving endpoints, vector search indexes, and Genie spaces — full topology, search, filtering, layout modes, focus view, and export.
 
 ### Full features (mapped to requirements)
 
@@ -387,7 +397,7 @@ After first launch, configure catalog scope, limits, and warehouse in **Settings
 │                                                          │
 │  ┌─────────────┐  ┌──────────────┐  ┌────────────────┐  │
 │  │  Connectors  │  │ Graph Engine │  │ Annotation     │  │
-│  │  (10 sources)│──│ (NetworkX)   │──│ Store (Delta)  │  │
+│  │  (13 sources)│──│ (NetworkX)   │──│ Store (Delta)  │  │
 │  └─────────────┘  └──────────────┘  └────────────────┘  │
 │  ┌─────────────┐  ┌──────────────┐  ┌────────────────┐  │
 │  │  Preflight   │  │ Cost         │  │ Config         │  │
@@ -398,7 +408,7 @@ After first launch, configure catalog scope, limits, and warehouse in **Settings
 ┌──────────────────────────┴──────────────────────────────┐
 │              Databricks Workspace                        │
 │  Unity Catalog │ Compute │ Jobs │ Dashboards │ System    │
-│  Tables        │ Apps    │ Shares │ Pipelines            │
+│  Apps │ Shares │ Pipelines │ Serving │ VectorSearch │Genie│
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -537,6 +547,9 @@ lattice/
 │   │   ├── apps.py              # Databricks Apps, Lakebase databases
 │   │   ├── federation.py        # Connections, Delta Shares, Recipients
 │   │   ├── pipelines.py         # DLT, Autoloader pipelines
+│   │   ├── serving_endpoints.py # Model Serving / AI Gateway endpoints
+│   │   ├── vector_search.py     # Vector Search indexes
+│   │   ├── genie.py             # Genie spaces (AI/BI rooms)
 │   │   └── system_tables.py     # System table queries
 │   └── graph/
 │       ├── builder.py           # Builds NetworkX graph from all sources

@@ -4,6 +4,7 @@ export type NodeType =
   | 'Warehouse' | 'Serverless' | 'Cluster' | 'Job' | 'Dashboard' | 'Pipeline'
   | 'App' | 'Database'
   | 'ForeignCatalog' | 'Connection' | 'Share' | 'Recipient'
+  | 'ServingEndpoint' | 'VectorSearchIndex' | 'GenieSpace'
 
 export interface LatticeNode {
   id: string

@@ -26,12 +26,15 @@ const LAYOUT_MODES: { key: LayoutMode; label: string; title: string }[] = [
 // Type display order for swimlane
 const SWIMLANE_ORDER = [
   'Catalog', 'ForeignCatalog', 'Schema', 'Database', 'Table', 'View', 'Model',
+  'Volume', 'StreamingTable', 'MaterializedView',
   'Connection', 'Share', 'Recipient',
-  'Warehouse', 'Cluster', 'Job', 'App', 'Dashboard',
+  'VectorSearchIndex',
+  'Warehouse', 'Serverless', 'Cluster', 'Job', 'Pipeline', 'App', 'Dashboard',
+  'ServingEndpoint', 'GenieSpace',
 ]
 
-const UC_TYPES = new Set(['Catalog', 'ForeignCatalog', 'Schema', 'Table', 'View', 'Model', 'Volume', 'StreamingTable', 'MaterializedView', 'Database', 'Connection', 'Share', 'Recipient'])
-const COMPUTE_TYPES = new Set(['Warehouse', 'Serverless', 'Cluster', 'Job', 'Dashboard', 'App', 'Pipeline'])
+const UC_TYPES = new Set(['Catalog', 'ForeignCatalog', 'Schema', 'Table', 'View', 'Model', 'Volume', 'StreamingTable', 'MaterializedView', 'Database', 'Connection', 'Share', 'Recipient', 'VectorSearchIndex'])
+const COMPUTE_TYPES = new Set(['Warehouse', 'Serverless', 'Cluster', 'Job', 'Dashboard', 'App', 'Pipeline', 'ServingEndpoint', 'GenieSpace'])
 
 const VIEW_MODES: { key: ViewMode; label: string }[] = [
   { key: 'uc', label: 'UC Tree' },
@@ -56,6 +59,8 @@ function getConsoleUrl(host: string, node: LatticeNode): string | null {
     case 'Job':      return `${base}/jobs/${node.fqn}`
     case 'Dashboard': return `${base}/dashboardsv3/${node.fqn}`
     case 'App':       return `${base}/apps/${node.name}`
+    case 'ServingEndpoint': return `${base}/ml/endpoints/${node.name}`
+    case 'GenieSpace': return `${base}/genie/rooms/${node.fqn}`
     default: return null
   }
 }
