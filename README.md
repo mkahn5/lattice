@@ -430,6 +430,12 @@ After first launch, configure catalog scope, limits, and warehouse in **Settings
 
 ## Release Notes
 
+### v0.5.3 — View Dependency Edges (Mar 20, 2026)
+- **View → Table edges:** New `derivedFrom` edge type shows which source tables a view is built from. Includes chained view→view→table relationships.
+- **Automatic dependency resolution:** View dependencies resolved via `tables.get()` API in parallel after the main catalog fetch. Only creates edges when both the view and its source table are in the graph.
+- **Edge styling:** `derivedFrom` edges render in cyan (#06b6d4) with solid lines, distinct from lineage edges.
+- **Edge legend updated:** New `derivedFrom` entry in the Edge Types panel.
+
 ### v0.5.2 — AI/ML Stack Connectors (Mar 19, 2026)
 - **Model Serving Endpoints:** Discovers all Model Serving and AI Gateway endpoints. Links each endpoint to the UC registered models it serves via `serves` edges. Shows endpoint state and creator.
 - **Vector Search Indexes:** Discovers all Vector Search indexes across endpoints. Links each index to its source Delta table (`indexesFrom`) and embedding model endpoint (`embeddedBy`). Surfaces index type and sync status.
