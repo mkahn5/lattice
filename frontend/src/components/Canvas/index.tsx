@@ -472,6 +472,8 @@ export function Canvas() {
   const initialFitDone = useRef(false)
   // When true, filter/search changes skip hard reset and show a nudge instead
   const [filterChangedWhileModified, setFilterChangedWhileModified] = useState(false)
+  // TODO: re-add multi-select performance tip (toast was not rendering — debug later)
+  // const [multiSelectTip, setMultiSelectTip] = useState<string | null>(null)
 
   // Table counts per schema (for collapsed badge)
   const tableCountBySchema = useMemo(() => {
@@ -776,9 +778,13 @@ export function Canvas() {
     return () => clearTimeout(t)
   }, [selectedNodeId, fitView])
 
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  const showMultiSelectTip = useCallback(() => {}, [])
+
   const onNodeClick = useCallback(
     (event: React.MouseEvent, node: Node) => {
       if (event.shiftKey) {
+        showMultiSelectTip()
         // Shift+click: toggle node in/out of multi-select without opening detail panel
         const wasSelected = selectedNodeIds.has(node.id)
         if (wasSelected) {
@@ -802,7 +808,7 @@ export function Canvas() {
         selectNode(node.id)
       }
     },
-    [selectNode, selectedNodeIds, addToSelection, removeFromSelection, clearSelection, setRfNodes],
+    [selectNode, selectedNodeIds, addToSelection, removeFromSelection, clearSelection, setRfNodes, showMultiSelectTip],
   )
 
   // Persist drag positions so filter changes don't reset them
@@ -826,6 +832,7 @@ export function Canvas() {
       const idArr = selectedRfNodes.filter(n => !n.id.startsWith('__label__')).map(n => n.id)
       const ids = new Set(idArr)
       if (ids.size === 0 && selectedNodeIds.size === 0) return
+      if (ids.size > 0) showMultiSelectTip()
       setSelectedNodes(idArr)
       // Single selection: also drive the detail panel
       if (ids.size === 1) {
@@ -834,7 +841,7 @@ export function Canvas() {
         selectNode(null)
       }
     },
-    [setSelectedNodes, selectNode, selectedNodeIds.size],
+    [setSelectedNodes, selectNode, selectedNodeIds.size, showMultiSelectTip],
   )
 
   // Cmd/Ctrl+A: select all visible nodes
@@ -1106,6 +1113,7 @@ export function Canvas() {
 
         {/* View mode + layout toggle */}
         <Panel position="top-center">
+          <div className="flex flex-col items-center gap-1.5">
           <div className="flex items-center gap-2">
             {/* Asset filter — with unsaved-layout guard */}
             <div className="flex flex-col items-start gap-0.5">
@@ -1366,6 +1374,8 @@ export function Canvas() {
                 </div>
               )}
             </div>
+          </div>
+          {/* TODO: multi-select performance tip toast — debug rendering issue */}
           </div>
         </Panel>
       </ReactFlow>
