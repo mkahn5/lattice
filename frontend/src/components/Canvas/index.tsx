@@ -663,16 +663,17 @@ export function Canvas() {
         const isLineage  = !!e.lineage
         const isExposes  = e.relationship === 'exposes' || e.relationship === 'includes'
         const isQueries  = e.relationship === 'queries' || e.relationship === 'uses'
+        const isDerived  = e.relationship === 'derivedFrom'
         return {
           id: e.id,
           source: e.source,
           target: e.target,
           label: isContains ? undefined : e.label,
           type: isContains ? 'smoothstep' : 'default',
-          animated: !isContains && !isLineage && !isExposes,
+          animated: !isContains && !isLineage && !isExposes && !isDerived,
           markerEnd: { type: MarkerType.ArrowClosed, width: 12, height: 12 },
           style: {
-            stroke: isContains ? '#d1d5db' : isLineage ? '#3b82f6' : isExposes ? '#14b8a6' : isQueries ? '#8b5cf6' : '#f97316',
+            stroke: isContains ? '#d1d5db' : isDerived ? '#06b6d4' : isLineage ? '#3b82f6' : isExposes ? '#14b8a6' : isQueries ? '#8b5cf6' : '#f97316',
             strokeWidth: isLineage ? 2 : 1.5,
             strokeDasharray: isLineage ? '6 3' : undefined,
           },

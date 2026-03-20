@@ -17,6 +17,7 @@ const EDGES: LegendEntry[] = [
   { label: 'serves',     color: '#e11d48', description: 'ServingEndpoint→Model' },
   { label: 'indexesFrom', color: '#7c3aed', description: 'VectorSearchIndex→Table' },
   { label: 'embeddedBy', color: '#7c3aed', dashed: true, description: 'VectorSearchIndex→ServingEndpoint' },
+  { label: 'derivedFrom', color: '#06b6d4', description: 'View→source Table' },
   { label: 'feedsInto',  color: '#3b82f6', dashed: true, description: 'Table→Table lineage' },
   { label: 'writesTo',   color: '#3b82f6', dashed: true, description: 'Job→Table lineage' },
   { label: 'readsFrom',  color: '#3b82f6', dashed: true, description: 'Table→Job lineage' },

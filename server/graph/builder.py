@@ -128,6 +128,18 @@ def build_graph(
         for vol in volume_by_schema.get(key, []):
             G.add_edge(sch["id"], vol["id"], relationship="contains", label="contains")
 
+    # View -> Table (derivedFrom) — views built from source tables
+    view_derived_count = 0
+    for tbl in uc_data["tables"]:
+        if tbl.get("source_tables"):
+            for src_fqn in tbl["source_tables"]:
+                src_id = f"table:{src_fqn}"
+                if G.has_node(src_id):
+                    G.add_edge(tbl["id"], src_id, relationship="derivedFrom", label="derived from")
+                    view_derived_count += 1
+    if view_derived_count:
+        print(f"[builder] view→table: {view_derived_count} derivedFrom edges added")
+
     # Job -> Cluster (runsOn) — tasks that pin to an existing cluster
     cluster_by_id = {cl["fqn"]: cl["id"] for cl in clusters}
     for job in jobs:

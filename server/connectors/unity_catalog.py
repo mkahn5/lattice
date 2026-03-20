@@ -74,6 +74,13 @@ def fetch_tables(w: WorkspaceClient, catalog_name: str, schema_name: str, limit:
                 "View" if "VIEW" in tt else
                 "Table"
             )
+            # Extract view dependencies (source tables for views)
+            source_tables = []
+            if node_type in ("View", "MaterializedView") and t.view_dependencies:
+                for dep in (t.view_dependencies.dependencies or []):
+                    if dep.table and dep.table.table_full_name:
+                        source_tables.append(dep.table.table_full_name)
+
             results.append({
                 "id": f"table:{t.full_name}",
                 "type": node_type,
@@ -88,6 +95,7 @@ def fetch_tables(w: WorkspaceClient, catalog_name: str, schema_name: str, limit:
                 "created_at": str(t.created_at) if t.created_at else None,
                 "updated_at": str(t.updated_at) if t.updated_at else None,
                 "row_count": t.properties.get("spark.sql.statistics.numRows") if t.properties else None,
+                "source_tables": source_tables,
             })
             if limit and len(results) >= limit:
                 break
@@ -232,4 +240,31 @@ def fetch_all(
                 print(f"[fetch_all] {cat['name']}: error — {e}")
 
     models = fetch_models(w, catalog_filter=catalog_filter, limit=model_limit)
+
+    # Resolve view dependencies via tables.get() — tables.list() doesn't populate view_dependencies
+    views = [t for t in tables if t["type"] in ("View", "MaterializedView") and not t.get("source_tables")]
+    if views:
+        def _get_view_deps(view: dict) -> tuple[str, list[str]]:
+            try:
+                info = w.tables.get(view["fqn"])
+                deps = []
+                if info.view_dependencies and info.view_dependencies.dependencies:
+                    for dep in info.view_dependencies.dependencies:
+                        if dep.table and dep.table.table_full_name:
+                            deps.append(dep.table.table_full_name)
+                return view["id"], deps
+            except Exception:
+                return view["id"], []
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=8) as vex:
+            futs = [vex.submit(_get_view_deps, v) for v in views]
+            view_deps = dict(f.result() for f in concurrent.futures.as_completed(futs, timeout=60))
+
+        resolved = 0
+        for t in tables:
+            if t["id"] in view_deps and view_deps[t["id"]]:
+                t["source_tables"] = view_deps[t["id"]]
+                resolved += 1
+        print(f"[fetch_all] view dependencies: {resolved}/{len(views)} views resolved")
+
     return {"catalogs": catalogs, "schemas": schemas, "tables": tables, "volumes": volumes, "models": models}
