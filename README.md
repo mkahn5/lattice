@@ -430,6 +430,13 @@ After first launch, configure catalog scope, limits, and warehouse in **Settings
 
 ## Release Notes
 
+### v0.5.4 — Job→Table Lineage, UC Tags & Configurable Limits (Mar 20, 2026)
+- **Lineage-driven backfill:** After fetching lineage from `system.access.table_lineage`, Lattice automatically backfills missing jobs and tables so Job→Table edges connect. Previously, ingestion limits meant most lineage endpoints were missing from the graph — now the full Job → Table → View chain is visible.
+- **UC tag ingestion:** Tags set via `ALTER TABLE SET TAGS` are now ingested from `system.information_schema.table_tags` and displayed as pills in the detail panel. Tags are searchable in the canvas search box — search by tag key or value (e.g., "finance", "critical") to find tagged assets.
+- **Configurable limits (Settings → Advanced):** Lineage query limit (default 10K), job backfill limit (default 500), and table backfill limit (default 2K) are configurable in the UI with an "increase at your own risk" warning. Also settable via environment variables.
+- **Lineage query limits raised:** Default from 1K to 10K rows for both table-to-table and job-to-table lineage queries.
+- **Known Limitations section updated:** New ingestion limits table in README documenting all defaults, maximums, and their impact on large workspaces.
+
 ### v0.5.3 — View Dependency Edges (Mar 20, 2026)
 - **View → Table edges:** New `derivedFrom` edge type shows which source tables a view is built from. Includes chained view→view→table relationships.
 - **Automatic dependency resolution:** View dependencies resolved via `tables.get()` API in parallel after the main catalog fetch. Only creates edges when both the view and its source table are in the graph.
