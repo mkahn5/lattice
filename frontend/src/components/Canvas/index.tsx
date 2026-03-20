@@ -685,15 +685,14 @@ export function Canvas() {
     setRfEdges(edges)
   }, [clippedNodes, latticeEdges, collapsedSchemas, tableCountBySchema, toggleSchema, layoutMode, showLineage, freshnessFilter, costOverlayEnabled, costData, highlightedIds, activeTagFilter, annotations, tagConfig])
 
-  // Tracks when WE are the ones updating node selection so onSelectionChange
-  // knows to skip its re-sync (avoids the setRfNodes → onSelectionChange → setSelectedNodes → re-render loop).
-  // Uses a timestamp rather than a boolean: ReactFlow may fire onSelectionChange multiple times from a
-  // single setRfNodes call, so we suppress all callbacks within 100ms of the last programmatic update.
-  const ownSelectionUpdateAt = useRef(0)
+  // Counter: how many onSelectionChange callbacks to suppress. Incremented when we
+  // programmatically update node selection (to avoid the setRfNodes → onSelectionChange →
+  // setSelectedNodes → re-render loop). Decremented each time onSelectionChange fires.
+  const skipSelectionChanges = useRef(0)
 
   // Update selection state without triggering a relayout
   useEffect(() => {
-    ownSelectionUpdateAt.current = Date.now()
+    skipSelectionChanges.current += 1
     setRfNodes(prev => prev.map(n => ({ ...n, selected: n.id === selectedNodeId })))
   }, [selectedNodeId])
 
@@ -789,7 +788,7 @@ export function Canvas() {
         }
         // Keep ReactFlow selection in sync — suppress the onSelectionChange callback
         // that ReactFlow fires in response, to prevent it from overwriting our store state
-        ownSelectionUpdateAt.current = Date.now()
+        skipSelectionChanges.current += 1
         setRfNodes(prev => prev.map(n => ({
           ...n,
           selected: n.id === node.id ? !wasSelected : n.selected,
@@ -817,7 +816,8 @@ export function Canvas() {
   // to break the setRfNodes → onSelectionChange → setSelectedNodes → re-render loop.
   const onSelectionChange = useCallback(
     ({ nodes: selectedRfNodes }: { nodes: Node[]; edges: Edge[] }) => {
-      if (Date.now() - ownSelectionUpdateAt.current < 100) {
+      if (skipSelectionChanges.current > 0) {
+        skipSelectionChanges.current -= 1
         return
       }
       const idArr = selectedRfNodes.filter(n => !n.id.startsWith('__label__')).map(n => n.id)
