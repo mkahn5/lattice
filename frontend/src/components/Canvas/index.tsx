@@ -686,12 +686,14 @@ export function Canvas() {
   }, [clippedNodes, latticeEdges, collapsedSchemas, tableCountBySchema, toggleSchema, layoutMode, showLineage, freshnessFilter, costOverlayEnabled, costData, highlightedIds, activeTagFilter, annotations, tagConfig])
 
   // Tracks when WE are the ones updating node selection so onSelectionChange
-  // knows to skip its re-sync (avoids the setRfNodes → onSelectionChange → setSelectedNodes → re-render loop)
-  const ownSelectionUpdate = useRef(false)
+  // knows to skip its re-sync (avoids the setRfNodes → onSelectionChange → setSelectedNodes → re-render loop).
+  // Uses a timestamp rather than a boolean: ReactFlow may fire onSelectionChange multiple times from a
+  // single setRfNodes call, so we suppress all callbacks within 100ms of the last programmatic update.
+  const ownSelectionUpdateAt = useRef(0)
 
   // Update selection state without triggering a relayout
   useEffect(() => {
-    ownSelectionUpdate.current = true
+    ownSelectionUpdateAt.current = Date.now()
     setRfNodes(prev => prev.map(n => ({ ...n, selected: n.id === selectedNodeId })))
   }, [selectedNodeId])
 
@@ -779,15 +781,18 @@ export function Canvas() {
     (event: React.MouseEvent, node: Node) => {
       if (event.shiftKey) {
         // Shift+click: toggle node in/out of multi-select without opening detail panel
-        if (selectedNodeIds.has(node.id)) {
+        const wasSelected = selectedNodeIds.has(node.id)
+        if (wasSelected) {
           removeFromSelection(node.id)
         } else {
           addToSelection(node.id)
         }
-        // Keep ReactFlow selection in sync
+        // Keep ReactFlow selection in sync — suppress the onSelectionChange callback
+        // that ReactFlow fires in response, to prevent it from overwriting our store state
+        ownSelectionUpdateAt.current = Date.now()
         setRfNodes(prev => prev.map(n => ({
           ...n,
-          selected: n.id === node.id ? !selectedNodeIds.has(n.id) : n.selected,
+          selected: n.id === node.id ? !wasSelected : n.selected,
         })))
       } else {
         // Normal click: clear multi-select and open detail panel
@@ -812,8 +817,7 @@ export function Canvas() {
   // to break the setRfNodes → onSelectionChange → setSelectedNodes → re-render loop.
   const onSelectionChange = useCallback(
     ({ nodes: selectedRfNodes }: { nodes: Node[]; edges: Edge[] }) => {
-      if (ownSelectionUpdate.current) {
-        ownSelectionUpdate.current = false
+      if (Date.now() - ownSelectionUpdateAt.current < 100) {
         return
       }
       const idArr = selectedRfNodes.filter(n => !n.id.startsWith('__label__')).map(n => n.id)
