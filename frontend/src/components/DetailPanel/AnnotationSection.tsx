@@ -14,6 +14,7 @@ export function AnnotationSection({ nodeId, fqn, nodeType }: AnnotationSectionPr
   const {
     annotations, tagConfig, annotationsAvailable, annotationsError,
     upsertAnnotation, bulkUpsertAnnotation,
+    workspaceInfo, appStatus,
   } = useGraphStore()
 
   const ann = annotations[fqn]
@@ -42,9 +43,19 @@ export function AnnotationSection({ nodeId, fqn, nodeType }: AnnotationSectionPr
 
   if (!annotationsAvailable) {
     if (annotationsError) {
+      const host = workspaceInfo?.host?.replace(/\/$/, '')
+      const whId = appStatus?.warehouse_id
+      const whUrl = host && whId ? `${host}/sql/warehouses/${whId}` : host ? `${host}/sql/warehouses` : null
       return (
         <div className="px-4 py-2 text-[10px] text-gray-400 border-b border-gray-100">
-          Annotations unavailable — SQL warehouse required
+          <span>Annotations unavailable — a running SQL warehouse is required. </span>
+          {whUrl ? (
+            <a href={whUrl} target="_blank" rel="noopener noreferrer" className="text-indigo-500 hover:text-indigo-700 underline">
+              Check warehouse status
+            </a>
+          ) : (
+            <span>Configure a warehouse in Settings.</span>
+          )}
         </div>
       )
     }
