@@ -165,14 +165,6 @@ Lattice builds a live ontology of your Databricks environment — every Unity Ca
 
 > **Lineage limitations:** Lineage data uses a 30-day window from `system.access.table_lineage` — infrequently-run pipelines (monthly jobs) may not have edges at the time of ingestion. `system.query.history` only captures SQL warehouse queries, so tables read exclusively via Spark clusters appear as "cold." Default ingestion limits cap the number of lineage rows, backfill jobs, and backfill tables — see [Known Limitations](#known-limitations) and **Settings → Advanced** to adjust.
 
-### Annotations (Delta-backed, optional)
-Annotations require a running SQL warehouse and CREATE TABLE permission on the annotations catalog (default: `lattice.metadata`). Without this, annotations are disabled and all other features work normally.
-
-- **Tags:** built-in (critical, pii, needs-migration, under-review, deprecated, verified) + custom
-- **Notes:** free-text per asset (up to 2000 chars)
-- **Bulk tagging** across multiple nodes via multi-select
-- **Persistent** — stored in `lattice.metadata.annotations` Delta table, survives redeploys
-
 ### AI/ML Stack
 - **Model Serving Endpoints** — AI Gateway and custom model serving, linked to UC registered models via `serves` edges
 - **Vector Search Indexes** — indexes linked to source tables (`indexesFrom`) and embedding endpoints (`embeddedBy`) for RAG pipeline visibility
@@ -200,6 +192,12 @@ Annotations require a running SQL warehouse and CREATE TABLE permission on the a
 ## Limitations & Scale
 
 Lattice is designed for workspace exploration and governance — not as a real-time monitoring system for the largest Databricks deployments. Understanding the boundaries helps set expectations and configure the tool appropriately.
+
+### What is a "node"?
+
+Every asset Lattice discovers becomes a **node** on the graph — a catalog, schema, table, view, job, warehouse, dashboard, app, serving endpoint, etc. A single catalog with 10 schemas averaging 50 tables each produces ~510 nodes (1 catalog + 10 schemas + 500 tables) before counting compute, jobs, and other assets. A typical workspace with 2–3 catalogs, compute resources, and jobs lands in the 1,000–3,000 node range.
+
+**Workspaces organized into catalogs work best with Lattice.** When data is organized into catalogs (e.g., `bronze`, `silver`, `gold` or by domain like `finance`, `marketing`), you can scope Lattice to specific catalogs in **Settings → Catalog Scope** to focus on the subset you care about. Workspaces where everything lives in a single catalog with hundreds of schemas are harder to navigate — consider using type filters and search to work with manageable subsets.
 
 ### Canvas Rendering
 
