@@ -120,13 +120,13 @@ Lattice builds a live ontology of your Databricks environment — every Unity Ca
 
 ## What It Does
 
-- **Models** your workspace as a live ontology — typed entities (23 node types) with semantic relationships (15+ edge types), forming a complete platform knowledge graph
+- **Models** your workspace as a live ontology — typed entities (23 node types) with semantic relationships (16+ edge types), forming a complete platform knowledge graph
 - **Discovers** every asset — catalogs, schemas, tables, views, models, volumes, warehouses, clusters, jobs, dashboards, apps, pipelines, Delta Shares, foreign catalogs, Lakebase databases, model serving endpoints, vector search indexes, and Genie spaces
-- **Connects** them with structural, compute, lineage, AI, and federation edges that carry meaning (contains, runsOn, queries, feedsInto, writesTo, readsFrom, serves, indexesFrom, embeddedBy)
-- **Enriches** with system table data — DBU spend, query frequency, heat (last-accessed age), job success rates, storage size
+- **Connects** them with structural, compute, lineage, AI, and federation edges that carry meaning (contains, runsOn, queries, feedsInto, writesTo, readsFrom, derivedFrom, serves, indexesFrom, embeddedBy)
+- **Enriches** with system table data — DBU spend, query frequency, heat (last-accessed age), job success rates, storage size, UC tags
 - **Visualizes** the ontology on an interactive canvas with multiple layout modes, search, filters, and drill-down
 - **Analyzes** cost attribution, impact/blast radius, orphaned assets, and column-level lineage
-- **Annotates** with persistent tags and notes backed by a Delta table
+- **Annotates** with persistent tags and notes backed by a Delta table (requires SQL warehouse + CREATE TABLE permission)
 - **Exports** as JSON or JSON-LD (semantic web vocabulary) for downstream consumption by AI agents
 
 ---
@@ -135,10 +135,10 @@ Lattice builds a live ontology of your Databricks environment — every Unity Ca
 
 ### Graph & Canvas
 - **23 node types:** Catalog, ForeignCatalog, Schema, Table, View, Model, Volume, StreamingTable, MaterializedView, Warehouse, Serverless, Cluster, Job, Dashboard, App, Pipeline, Connection, Share, Recipient, Database, ServingEndpoint, VectorSearchIndex, GenieSpace
-- **15+ edge types:** contains, runsOn, queries, feedsInto, writesTo, readsFrom, triggers, uses, exposes, includes, serves, indexesFrom, embeddedBy
+- **16+ edge types:** contains, runsOn, queries, feedsInto, writesTo, readsFrom, derivedFrom, triggers, uses, exposes, includes, serves, indexesFrom, embeddedBy
 - **3 layout modes:** Tree (top-down), Tree (left-right), Swimlane (grouped by type)
 - **Schema collapse/expand** to manage large catalogs
-- **Search** across name, FQN, comment, and owner
+- **Search** across name, FQN, comment, owner, and UC tags
 - **Type filter** sidebar to show/hide node categories
 - **Freshness filter** — slider to show only assets active within N days
 - **Focus Neighbors** — radial layout around a selected node with direct connections
@@ -153,23 +153,30 @@ Lattice builds a live ontology of your Databricks environment — every Unity Ca
 - **Health panel** — detects orphaned tables (cold + 0 queries in 30d) and unowned assets
 - **Impact analysis** — BFS traversal showing "depends on this" (consumers) and "contained within" (descendants)
 - **Column lineage** — source_table.source_col → target_col, from `system.access.column_lineage`
+- **UC tags** — ingested from `system.information_schema.table_tags`, displayed as pills in the detail panel, searchable in the canvas search box
 
 ### Lineage
-- **Table lineage** from `system.access.table_lineage` — feedsInto, writesTo, readsFrom edges (blue dashed, toggleable)
-- **Dashboard → Table** lineage — SQL parsed from Lakeview dataset specs; external tables create stub nodes (dashed border)
+- **Table → Table lineage** from `system.access.table_lineage` — feedsInto edges (blue dashed, toggleable)
+- **Job → Table lineage** from `system.access.table_lineage` — writesTo and readsFrom edges show which jobs produce and consume which tables
+- **View → Table dependencies** from UC `view_dependencies` API — derivedFrom edges (cyan solid) show which source tables a view is built from, including chained view→view→table relationships
+- **Lineage-driven backfill** — jobs and tables referenced in lineage but not captured by the primary ingestion are automatically fetched so edges connect. This ensures the full Job → Table → View chain is visible
+- **Dashboard → Table lineage** — SQL parsed from Lakeview dataset specs; external tables create stub nodes (dashed border)
 - **Column lineage** — per-column source tracing in the detail panel
 
-### Annotations (Delta-backed)
+> **Lineage limitations:** Lineage data uses a 30-day window from `system.access.table_lineage` — infrequently-run pipelines (monthly jobs) may not have edges at the time of ingestion. `system.query.history` only captures SQL warehouse queries, so tables read exclusively via Spark clusters appear as "cold." Default ingestion limits cap the number of lineage rows, backfill jobs, and backfill tables — see [Known Limitations](#known-limitations) and **Settings → Advanced** to adjust.
+
+### Annotations (Delta-backed, optional)
+Annotations require a running SQL warehouse and CREATE TABLE permission on the annotations catalog (default: `lattice.metadata`). Without this, annotations are disabled and all other features work normally.
+
 - **Tags:** built-in (critical, pii, needs-migration, under-review, deprecated, verified) + custom
 - **Notes:** free-text per asset (up to 2000 chars)
 - **Bulk tagging** across multiple nodes via multi-select
-- **UC tag sync** — optionally writes `lattice_`-prefixed tags back to Unity Catalog native tags
 - **Persistent** — stored in `lattice.metadata.annotations` Delta table, survives redeploys
 
 ### AI/ML Stack
-- **Model Serving Endpoints** — AI Gateway and custom model serving, linked to UC registered models
-- **Vector Search Indexes** — indexes linked to source tables and embedding endpoints (RAG pipeline visibility)
-- **Genie Spaces** — AI/BI rooms linked to warehouses and configured tables
+- **Model Serving Endpoints** — AI Gateway and custom model serving, linked to UC registered models via `serves` edges
+- **Vector Search Indexes** — indexes linked to source tables (`indexesFrom`) and embedding endpoints (`embeddedBy`) for RAG pipeline visibility
+- **Genie Spaces** — AI/BI rooms linked to warehouses (`runsOn`) and configured tables (`queries`)
 
 ### Federation & Connected Systems
 - **Foreign catalogs** (Snowflake, PostgreSQL, MySQL connections)
@@ -222,15 +229,17 @@ With just these, Lattice discovers and visualizes all UC assets, compute resourc
 |---|---|---|
 | **Canvas + topology** | Workspace + Apps | — |
 | **Search, filter, focus** | Workspace + Apps | — |
+| **View → Table edges** | Workspace + Apps | — (uses UC `view_dependencies` API) |
 | **Workspace switching** | Multiple CLI profiles or Apps | — |
 | **Catalog switching** | `USE CATALOG` on target catalogs | — |
 | **Cost overlay & DBU badges** | SQL warehouse | `system.billing.usage` |
 | **Heat dots (hot/warm/cold)** | SQL warehouse | `system.query.history` |
 | **Orphan detection** | SQL warehouse | `system.query.history` |
-| **Table lineage edges** | SQL warehouse | `system.access.table_lineage` |
+| **Table & Job lineage edges** | SQL warehouse | `system.access.table_lineage` |
 | **Column-level lineage** | SQL warehouse | `system.access.column_lineage` |
 | **Job success rates** | SQL warehouse | `system.lakeflow.job_run_timeline` |
 | **Row counts & table sizes** | SQL warehouse | `system.information_schema.table_storage_utilization` |
+| **UC tags** | SQL warehouse | `system.information_schema.table_tags` |
 | **Annotations (tags & notes)** | SQL warehouse + CREATE TABLE on `lattice.metadata` | — |
 | **App sharing** | Set **Can Use** permission on the app for workspace users | — |
 
@@ -325,12 +334,19 @@ See [INSTALL.md](INSTALL.md) for full setup details including warehouse configur
 | `LATTICE_TABLE_LIMIT` | 50 | Tables per schema |
 | `LATTICE_MODEL_LIMIT` | 200 | Max ML models |
 | `LATTICE_PIPELINE_LIMIT` | 200 | Max pipelines |
+| `LATTICE_LINEAGE_QUERY_LIMIT` | 10,000 | Max rows from `system.access.table_lineage` |
+| `LATTICE_LINEAGE_BACKFILL_JOBS` | 500 | Max jobs backfilled from lineage |
+| `LATTICE_LINEAGE_BACKFILL_TABLES` | 2,000 | Max tables backfilled from lineage |
 | `LATTICE_ANNOTATIONS_CATALOG` | lattice | Annotations table catalog |
 | `LATTICE_ANNOTATIONS_SCHEMA` | metadata | Annotations table schema |
 
 ### In-App Settings
 
 After first launch, configure catalog scope, limits, and warehouse in **Settings** (gear icon) — no redeploy needed.
+
+**Catalog Scope** — select which catalogs to include and choose a scale preset (S/M/L) or set custom schema and table limits per catalog.
+
+**Advanced** (collapsed by default) — configure lineage query limits and backfill caps. These control how much lineage data Lattice fetches and how many missing jobs/tables it backfills to complete lineage edges. Higher values improve lineage coverage on large workspaces but increase ingestion time, API calls, and memory usage. See [Known Limitations](#known-limitations) for default values and their impact.
 
 ---
 
@@ -416,9 +432,10 @@ After first launch, configure catalog scope, limits, and warehouse in **Settings
 1. Load cached graph immediately (instant canvas)
 2. Fetch all connectors in parallel with 45s timeout each
 3. Publish partial graph while slower connectors finish
-4. Fetch system table enrichment (usage, heat, lineage, cost)
-5. Build full NetworkX graph + compute cost attribution
-6. Merge annotations + cache to disk
+4. Fetch system table enrichment (usage, heat, tags, lineage, cost)
+5. Backfill missing jobs/tables referenced in lineage
+6. Build full NetworkX graph + compute cost attribution
+7. Merge annotations + cache to disk
 
 ### Security
 - Input validation: catalog/profile names validated against strict regex
@@ -543,7 +560,8 @@ After first launch, configure catalog scope, limits, and warehouse in **Settings
 | 5 | First-run wizard, permissions checker, settings, bundle packaging | Done |
 | 5.1 | Multi-workspace profiles, screenshots, UX polish | Done |
 | 5.2 | AI/ML stack connectors: Serving Endpoints, Vector Search, Genie Spaces | Done |
-| 10 | Annotation & Bookmarking: tags, notes, canvas dots, tag filter, multi-select, UC sync | Done |
+| 5.3 | View dependency edges, Job→Table lineage backfill, UC tag ingestion | Done |
+| 10 | Annotation & Bookmarking: tags, notes, canvas dots, tag filter, multi-select | Done |
 | 6 | MCP server: expose graph as agent-callable tools (search, lineage, impact, orphans) | Planned |
 | 7 | Automated architecture diagram export (Mermaid, draw.io, Lucidchart) | Planned |
 | 8 | Governance scorecard: workspace health score with trend over time | Planned |
@@ -578,7 +596,8 @@ lattice/
 │   │   ├── serving_endpoints.py # Model Serving / AI Gateway endpoints
 │   │   ├── vector_search.py     # Vector Search indexes
 │   │   ├── genie.py             # Genie spaces (AI/BI rooms)
-│   │   └── system_tables.py     # System table queries
+│   │   ├── lineage_backfill.py  # Backfill missing jobs/tables from lineage
+│   │   └── system_tables.py     # System table queries (enrichment, lineage, tags)
 │   └── graph/
 │       ├── builder.py           # Builds NetworkX graph from all sources
 │       ├── schema.py            # Node colors & icons
