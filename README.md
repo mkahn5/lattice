@@ -197,6 +197,63 @@ Annotations require a running SQL warehouse and CREATE TABLE permission on the a
 
 ---
 
+## Limitations & Scale
+
+Lattice is designed for workspace exploration and governance — not as a real-time monitoring system for the largest Databricks deployments. Understanding the boundaries helps set expectations and configure the tool appropriately.
+
+### Canvas Rendering
+
+The frontend uses [ReactFlow](https://reactflow.dev/) to render the graph canvas. ReactFlow performs well up to ~2,000–3,000 visible nodes. Beyond that, interactions (pan, zoom, drag) become sluggish and layout calculations slow down.
+
+| Workspace size | Expected experience |
+|---------------|-------------------|
+| < 1,000 nodes | Smooth — all layouts, search, and interactions feel instant |
+| 1,000–3,000 nodes | Good — minor delay on layout changes, fully usable |
+| 3,000–5,000 nodes | Usable — filter by type or catalog to reduce visible nodes for best performance |
+| 5,000+ nodes | Use type filters, catalog scope, or search to work with subsets at a time |
+
+Lattice clips rendering at 2,000 visible nodes and shows a notification when this limit is hit. Use type filters, catalog scope, or search to narrow the visible set.
+
+### API & Ingestion Limits
+
+Lattice applies default ingestion limits to balance coverage against API rate limits, ingestion time, and rendering performance. On large workspaces, defaults will capture a representative subset rather than the full workspace.
+
+| Setting | Default | Max | Configurable in | What it controls |
+|---------|---------|-----|-----------------|------------------|
+| Tables / schema | 50 | 1,000 | Settings → Catalog Scope | Tables ingested per schema during primary UC scan |
+| Schemas / catalog | 20 | 500 | Settings → Catalog Scope | Schemas ingested per catalog |
+| Jobs | 200 | 200 | Not yet configurable | Jobs ingested from `jobs.list()` API |
+| Lineage query limit | 10,000 | 100,000 | Settings → Advanced | Rows fetched from `system.access.table_lineage` |
+| Job backfill limit | 500 | 5,000 | Settings → Advanced | Missing jobs fetched individually to complete lineage edges |
+| Table backfill limit | 2,000 | 20,000 | Settings → Advanced | Missing tables fetched individually to complete lineage edges |
+
+**How backfill works:** After fetching lineage from `system.access.table_lineage`, Lattice identifies jobs and tables that appear in lineage but weren't captured by the primary ingestion. It then fetches those missing nodes individually via `jobs.get()` and `tables.get()` so lineage edges can connect. This is subject to the backfill limits above.
+
+**Example — 20K table workspace:** With defaults (50 tables/schema, 10K lineage rows, 2K table backfill), Lattice would ingest ~1,000 tables from the primary scan + up to 2,000 more from backfill = ~3,000 of 20K tables. To increase coverage, raise the table limit and backfill limits in **Settings → Advanced**. Be aware this increases ingestion time (potentially 5–10 minutes) and may push past the ReactFlow rendering comfort zone.
+
+### System Table Blind Spots
+
+Several features depend on Databricks system tables that have inherent limitations:
+
+| Limitation | Affected features | Cause |
+|-----------|-------------------|-------|
+| **Spark-only tables appear "cold"** | Heat dots, orphan detection, freshness filter | `system.query.history` only captures SQL warehouse queries. Tables read exclusively via Spark clusters or notebooks have no query history |
+| **30-day lineage window** | Table lineage, Job→Table edges | `system.access.table_lineage` retains 30 days of data. Monthly or quarterly pipelines may not have edges at time of ingestion |
+| **Cost attribution is directional** | Cost overlay, DBU attribution | Cost is attributed via BFS graph traversal, not per-query accounting. A warehouse serving 10 dashboards attributes its full DBU to all reachable tables, not proportionally |
+| **Job reliability is noisy** | Job success rates | `system.lakeflow.job_run_timeline` counts all runs including expected failures (retries, conditional jobs, canceled runs, dev/test) |
+| **UC tags require grants** | UC tag display and search | `system.information_schema.table_tags` requires SELECT access; silently returns empty if unavailable |
+| **Column lineage requires grants** | Column-level lineage | `system.access.column_lineage` requires SELECT access; silently returns empty if unavailable |
+
+### Other Limitations
+
+- Column-level cost attribution not yet supported (table-level only)
+- Stub table nodes created for cross-catalog dashboard references have no visual legend
+- Annotations require a running SQL warehouse + CREATE TABLE permission on the annotations catalog
+- File-based JSON caching (not distributed — each app instance has its own cache)
+- The `owner` field on UC assets often reflects the creator or a service principal, not a business owner
+
+---
+
 ## Tech Stack
 
 | Layer | Technology |
@@ -634,31 +691,3 @@ See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for common issues including:
 - Empty UC tree
 - Warehouse not found
 - System table permission errors
-
----
-
-## Known Limitations
-
-### Ingestion Limits
-
-Lattice applies default limits to keep ingestion fast and rendering responsive. These can be increased in **Settings → Advanced** at your own risk — higher values increase ingestion time, API calls, and memory usage.
-
-| Setting | Default | Max | What it controls |
-|---------|---------|-----|------------------|
-| Tables / schema | 50 | 1,000 | Tables ingested per schema during primary UC scan |
-| Schemas / catalog | 20 | 500 | Schemas ingested per catalog |
-| Lineage query limit | 10,000 | 100,000 | Rows fetched from `system.access.table_lineage` (table-to-table and job-to-table edges) |
-| Job backfill limit | 500 | 5,000 | Missing jobs fetched individually to complete lineage edges |
-| Table backfill limit | 2,000 | 20,000 | Missing tables fetched individually to complete lineage edges |
-
-**Impact of defaults:** On a workspace with 20K tables and 1K+ jobs, the defaults will capture a subset of the full lineage. Job → Table edges require both the job and table to exist in the graph — the backfill step automatically fetches missing nodes referenced in lineage, but is subject to its own limits.
-
-### Other Limitations
-
-- Column-level cost attribution not yet supported (table-level only)
-- Stub table nodes (from cross-catalog dashboard queries) have no visual legend
-- Health panel orphan detection requires `system.query.history` access
-- Column lineage requires `system.access.column_lineage` grant — silently returns empty if unavailable
-- `system.query.history` only captures SQL warehouse queries — tables read exclusively via Spark clusters appear as "cold"
-- Lineage data uses a 30-day window — infrequently-run pipelines (monthly jobs) may not have edges at time of ingestion
-- File-based JSON caching (not distributed)
