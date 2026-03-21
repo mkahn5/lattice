@@ -1,0 +1,314 @@
+
+                    ______________________________________________________
+               ____/                                                      \____
+          ____/                                                                \____
+     ____/                                                                          \____
+    /                                                                                    \
+   |   ___            ___    _________  _________  ___    ________  ________               |
+   |  |\  \          |\  \  |\___   ___\\___   ___\\  \  |\   ____\|\   ____\              |
+   |  \ \  \         \ \  \ \|___ \  \_\|___ \  \_\ \  \ \ \  \___|\ \  \___|_             |
+   |   \ \  \         \ \  \     \ \  \     \ \  \ \ \  \ \ \  \    \ \_____  \            |
+   |    \ \  \____     \ \  \____ \ \  \     \ \  \ \ \  \ \ \  \____\|____|\  \           |
+   |     \ \_______\    \ \_______\\ \__\     \ \__\ \ \__\ \ \_______\____\_\  \          |
+   |      \|_______|     \|_______| \|__|      \|__|  \|__|  \|_______|\_________\         |
+   |                                                                  \|_________|         |
+   |                                                                                       |
+   |              V I S U A L   I N T E L L I G E N C E   F O R                            |
+   |                      D A T A B R I C K S                                              |
+   |                                                                                       |
+   |                           v 0 . 5 . 4                                                 |
+   |                                                                                       |
+    \____                                                                            ____/
+         \____                                                                  ____/
+              \____                                                        ____/
+                   \______________________________________________________/
+
+
+    ===============================================================================
+    =                          C R E A T E D   B Y                                =
+    ===============================================================================
+
+                    Mike Kahn  -  mike.kahn@databricks.com
+
+                    React 19  +  FastAPI  +  NetworkX  +  ReactFlow
+                    Databricks SDK  +  Zustand  +  Tailwind CSS
+
+    ===============================================================================
+    =                       W H A T   I T   D O E S                               =
+    ===============================================================================
+
+     Lattice builds a live ontology of your Databricks environment.
+
+     Every Unity Catalog asset, compute resource, job, dashboard, app,
+     serving endpoint, vector search index, Genie space, and connected
+     system -- mapped as typed entities with semantic relationships,
+     enriched with operational intelligence from system tables.
+
+     Built for data teams and AI agents alike.
+
+       * MODELS    - 23 node types, 16+ edge types, full knowledge graph
+       * DISCOVERS - catalogs, schemas, tables, views, models, volumes,
+                     warehouses, clusters, jobs, dashboards, apps,
+                     pipelines, shares, connections, serving endpoints,
+                     vector search indexes, genie spaces
+       * CONNECTS  - structural, compute, lineage, AI, federation edges
+       * ENRICHES  - DBU spend, query frequency, heat, job success, tags
+       * VISUALIZES - interactive canvas, layouts, search, filters
+       * ANALYZES  - cost attribution, impact analysis, orphan detection
+       * EXPORTS   - JSON + JSON-LD for AI agent consumption
+
+
+    ===============================================================================
+    =                     G R A P H   &   C A N V A S                             =
+    ===============================================================================
+
+                          +------------+
+                          |  Catalog   |
+                          +-----+------+
+                          +-----+------+
+                          |  Schema    |
+                          +--+------+--+
+                     +-------+      +----------+     +-----------+
+                     | Table |      |   View   |<----| Dashboard |
+                     +--+--+-+      +----------+     +---------+-+
+                        |  |  feedsInto                  |     |
+                        |  v                             | queries
+                        | +-------+    +-------+    +----+----+
+                        | | Table |<---| Job   |--->| Cluster |
+                        | +-------+    +-------+    +---------+
+                        |           writesTo     runsOn
+                        | indexesFrom
+                        v               serves         embeddedBy
+                     +--------------+  +---------------+  +-------+
+                     | VectorSearch |->|ServingEndpoint|->| Model |
+                     +--------------+  +---------------+  +-------+
+
+     NODE TYPES (23):
+
+       UC Data       : Catalog, ForeignCatalog, Schema, Table, View,
+                       Model, Volume, StreamingTable, MaterializedView
+       Compute       : Warehouse, Serverless, Cluster, Job, Dashboard,
+                       App, Pipeline
+       AI/ML         : ServingEndpoint, VectorSearchIndex, GenieSpace
+       Federation    : Connection, Share, Recipient, Database
+
+     EDGE TYPES (16+):
+
+       Structural    : contains
+       Compute       : runsOn, triggers
+       Data          : queries, uses, derivedFrom
+       Lineage       : feedsInto, writesTo, readsFrom
+       Federation    : exposes, includes
+       AI/ML         : serves, indexesFrom, embeddedBy
+
+     CANVAS:
+
+       * 3 layout modes -- Tree (TB), Tree (LR), Swimlane
+       * Schema collapse/expand
+       * Search across name, FQN, comment, owner, UC tags
+       * Type filter sidebar
+       * Freshness filter (N-day slider)
+       * Focus Neighbors (radial layout)
+       * Save View + PNG export (4x) + JSON export
+       * Console URL links on every node
+
+
+    ===============================================================================
+    =                    I N T E L L I G E N C E                                  =
+    ===============================================================================
+
+       * Heat dots       green (<=7d), amber (<=30d), gray (cold)
+       * DBU badges      30-day compute spend on node tiles
+       * Cost overlay    DBU attribution: compute -> lineage -> tables
+       * Health panel    orphaned tables + unowned assets
+       * Impact analysis BFS: consumers + descendants
+       * Column lineage  source_table.col -> target_col
+       * UC tags         from information_schema.table_tags, searchable
+
+
+    ===============================================================================
+    =                        L I N E A G E                                        =
+    ===============================================================================
+
+       Table -> Table    feedsInto (blue dashed, toggleable)
+       Job -> Table      writesTo + readsFrom (from table_lineage)
+       View -> Table     derivedFrom (cyan solid, from view_dependencies)
+       Dashboard -> Table  parsed from Lakeview dataset SQL
+       Column lineage    per-column source tracing in detail panel
+
+       LINEAGE BACKFILL:
+
+         After fetching lineage, Lattice identifies jobs and tables
+         referenced in lineage but missing from the primary ingestion.
+         It backfills them via individual API calls so the full
+         Job -> Table -> View chain connects end-to-end.
+
+       LIMITATIONS:
+
+         - 30-day window (monthly pipelines may be missing)
+         - system.query.history only captures SQL warehouse queries
+         - Spark-only tables appear as "cold"
+         - Default limits cap rows/backfill (configurable in Advanced)
+
+
+    ===============================================================================
+    =                     A I / M L   S T A C K                                   =
+    ===============================================================================
+
+       Serving Endpoints   AI Gateway + custom models -> UC models
+       Vector Search       indexes -> source tables + embedding endpoints
+       Genie Spaces        AI/BI rooms -> warehouses + tables
+
+       Full pipeline visibility:
+       Table -> VectorSearch -> ServingEndpoint -> Model -> Genie
+
+
+    ===============================================================================
+    =                      F E D E R A T I O N                                    =
+    ===============================================================================
+
+       * Foreign catalogs   (Snowflake, PostgreSQL, MySQL)
+       * Delta Sharing      Shares, Recipients, included tables
+       * Lakebase           Database instances -> apps + catalogs
+       * Pipelines          DLT + Autoloader
+
+
+    ===============================================================================
+    =                  M U L T I - W O R K S P A C E                              =
+    ===============================================================================
+
+       * Add workspaces via Settings or setup wizard (name + host + PAT)
+       * Switch in sidebar without restarting
+       * PAT profiles, CLI profiles, or app workspace
+       * Test connection before saving
+       * Catalog selector with live search
+       * Per-workspace caching (~500ms on revisit)
+
+
+    ===============================================================================
+    =                         E X P O R T                                         =
+    ===============================================================================
+
+       JSON       full graph with nodes, edges, enrichment stats
+       JSON-LD    RDF-compatible with @context, @id, @type for agents
+
+
+    ===============================================================================
+    =             L I M I T A T I O N S   &   S C A L E                           =
+    ===============================================================================
+
+     WHAT IS A "NODE"?
+
+       Every asset Lattice discovers = one node on the graph.
+       1 catalog + 10 schemas + 500 tables = ~510 nodes
+       Typical workspace: 1,000 - 3,000 nodes
+
+       Workspaces organized into catalogs work best with Lattice.
+       Scope to specific catalogs in Settings -> Catalog Scope.
+
+     CANVAS RENDERING (ReactFlow):
+
+       < 1,000 nodes     Smooth
+       1,000 - 3,000     Good (minor delay on layout changes)
+       3,000 - 5,000     Usable (filter by type/catalog)
+       5,000+            Use filters, search, or catalog scope
+
+       Hard clip at 2,000 visible nodes (notification shown).
+
+     INGESTION LIMITS:
+
+       +------------------------+---------+--------+---------------------+
+       | Setting                | Default | Max    | Configure in        |
+       +------------------------+---------+--------+---------------------+
+       | Tables / schema        |      50 |  1,000 | Settings -> Scope   |
+       | Schemas / catalog      |      20 |    500 | Settings -> Scope   |
+       | Jobs                   |     200 |    200 | Not yet configurable|
+       | Lineage query limit    |  10,000 |100,000 | Settings -> Advanced|
+       | Job backfill limit     |     500 |  5,000 | Settings -> Advanced|
+       | Table backfill limit   |   2,000 | 20,000 | Settings -> Advanced|
+       +------------------------+---------+--------+---------------------+
+
+       Example: 20K table workspace with defaults =
+       ~1,000 primary + 2,000 backfill = ~3,000 of 20K tables.
+       Increase in Settings -> Advanced (at your own risk).
+
+     SYSTEM TABLE BLIND SPOTS:
+
+       * Spark-only tables appear "cold"
+         (system.query.history = SQL warehouse only)
+       * 30-day lineage window
+         (monthly jobs may not have edges)
+       * Cost attribution is directional
+         (BFS graph walk, not per-query accounting)
+       * Job reliability is noisy
+         (includes retries, cancels, dev/test runs)
+       * UC tags + column lineage require grants
+         (silently empty if unavailable)
+
+
+    ===============================================================================
+    =                     T E C H   S T A C K                                     =
+    ===============================================================================
+
+       Frontend     : React 19 + TypeScript + ReactFlow + Zustand + TW
+       Backend      : Python 3.11+ + FastAPI + Uvicorn
+       Graph Engine : NetworkX DiGraph
+       SDK          : databricks-sdk (Python)
+       Export       : JSON-LD
+       Deployment   : Databricks Apps
+
+
+    ===============================================================================
+    =                  R E L E A S E   H I S T O R Y                              =
+    ===============================================================================
+
+       v0.5.4  Job->Table Lineage, UC Tags, Configurable Limits
+       v0.5.3  View Dependency Edges (derivedFrom)
+       v0.5.2  AI/ML Stack Connectors (Serving, VectorSearch, Genie)
+       v0.5.1  Multi-Workspace & Screenshots
+       v0.5.0  Deployment & Canvas UX
+       v0.4.0  Intelligence Layer (health, impact, column lineage)
+       v0.3.0  Security Hardening
+       v0.2.1  Canvas UX (positions, save view, focus neighbors)
+       v0.2.0  Enrichment & Lineage (system tables, heat, DBU)
+       v0.1.0  MVP (connectors, graph, canvas, search, export)
+
+
+    ===============================================================================
+    =                       R O A D M A P                                         =
+    ===============================================================================
+
+       [DONE]  Phases 1-5  MVP through deployment & polish
+       [DONE]  Phase 5.2   AI/ML stack connectors
+       [DONE]  Phase 5.3   View deps, Job lineage, UC tags
+       [DONE]  Phase 10    Annotations & bookmarking
+
+       [NEXT]  Phase 6     MCP server (graph as agent tools)
+       [NEXT]  Phase 7     Architecture diagram export
+       [NEXT]  Phase 8     Governance scorecard
+       [NEXT]  Phase 9     Ontology writeback (edit -> UC)
+
+
+    ===============================================================================
+    =                       G R E E T Z                                           =
+    ===============================================================================
+
+                    Field Engineering  -  Databricks
+                    HLS AMER Industries
+
+                    "Every workspace tells a story.
+                     Lattice draws the map."
+
+
+               ____                                                ____
+          ____/    \______________________________________________/    \____
+     ____/                                                                  \____
+    /                                                                            \
+   |     github.com/databricks-field-eng/lattice                                  |
+   |     github.com/mkahn5/lattice                                                |
+   |                                                                              |
+    \____                                                                    ____/
+         \____                                                          ____/
+              \____                                                ____/
+                   \______________________________________________/
+
