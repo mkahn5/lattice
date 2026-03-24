@@ -339,7 +339,7 @@ export function SettingsPanel() {
               )}
               {versionInfo?.update_available && versionInfo.latest && (
                 <a
-                  href="https://github.com/databricks-field-eng/lattice/releases"
+                  href="https://github.com/mkahn5/lattice/releases"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-[9px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded font-medium hover:bg-amber-100 transition-colors flex items-center gap-1"

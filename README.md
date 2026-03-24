@@ -320,7 +320,7 @@ With just these, Lattice discovers and visualizes all UC assets, compute resourc
 
 Fork Lattice so Databricks Apps can pull from a repo you control:
 
-1. Go to [github.com/databricks-field-eng/lattice](https://github.com/databricks-field-eng/lattice)
+1. Go to [github.com/mkahn5/lattice](https://github.com/mkahn5/lattice)
 2. Click **Fork** (top right) → create the fork under your account
 3. Create a [fine-grained personal access token](https://github.com/settings/tokens?type=beta) with **Contents → Read-only** on your fork
 
@@ -374,7 +374,7 @@ Use this if you want to deploy without forking, or if you're making local change
 databricks auth login --host https://<your-workspace>.cloud.databricks.com --profile my-workspace
 
 # 2. Clone the repo
-git clone https://github.com/databricks-field-eng/lattice.git && cd lattice
+git clone https://github.com/mkahn5/lattice.git && cd lattice
 
 # 3. Sync to workspace (frontend/dist/ is pre-built in the repo)
 databricks sync . /Workspace/Users/<your-email>/lattice --profile my-workspace
@@ -417,7 +417,7 @@ The repo includes a pre-built frontend in `frontend/dist/`. You only need Python
 
 ```bash
 # Clone and set up Python environment
-git clone https://github.com/databricks-field-eng/lattice.git && cd lattice
+git clone https://github.com/mkahn5/lattice.git && cd lattice
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 

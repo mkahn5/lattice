@@ -46,7 +46,7 @@ With just these, Lattice discovers and visualizes all UC assets, compute resourc
 
 Databricks Apps requires you to deploy from a repository you own. Fork Lattice to your GitHub account:
 
-1. Go to [github.com/databricks-field-eng/lattice](https://github.com/databricks-field-eng/lattice)
+1. Go to [github.com/mkahn5/lattice](https://github.com/mkahn5/lattice)
 2. Click **Fork** (top right) → create the fork under your account
 
 ### Step 2: Create a GitHub Personal Access Token
@@ -81,7 +81,7 @@ Databricks Apps requires you to deploy from a repository you own. Fork Lattice t
 databricks auth login https://<your-workspace>.cloud.databricks.com --profile my-workspace
 
 # Clone and build the frontend locally
-git clone https://github.com/databricks-field-eng/lattice.git && cd lattice
+git clone https://github.com/mkahn5/lattice.git && cd lattice
 cd frontend && npm install && npm run build && cd ..
 
 # Sync source to workspace

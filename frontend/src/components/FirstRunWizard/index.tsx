@@ -294,7 +294,7 @@ export function FirstRunWizard() {
               <div className="mt-3 p-3 bg-gray-50 rounded-lg text-[11px] text-gray-500 leading-relaxed flex items-center justify-between">
                 <span>Check for the latest version, docs, and release notes:</span>
                 <a
-                  href="https://github.com/databricks-field-eng/lattice"
+                  href="https://github.com/mkahn5/lattice"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-indigo-500 hover:text-indigo-700 font-medium flex items-center gap-1"
