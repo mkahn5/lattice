@@ -304,17 +304,31 @@ With just these, Lattice discovers and visualizes all UC assets, compute resourc
 
 ## Quick Start — Deploy as a Databricks App
 
-### 1. Fork the repo
+### Prerequisites
 
-Databricks Apps requires you to deploy from a repo you own. Fork the Lattice repo to your GitHub account:
+| Requirement | Details |
+|---|---|
+| **Databricks workspace** | Unity Catalog enabled, Databricks Apps enabled |
+| **Permissions** | Can create Databricks Apps on the workspace |
+| **GitHub account** | For forking the repo (Git-based deploy) |
+| **Python** | 3.10+ (for local development only) |
+| **Node.js** | 18+ (for local development / rebuilding frontend only) |
+
+### Option A: Git-Based Deploy (recommended)
+
+#### 1. Fork the repo
+
+Fork Lattice so Databricks Apps can pull from a repo you control:
 
 1. Go to [github.com/databricks-field-eng/lattice](https://github.com/databricks-field-eng/lattice)
 2. Click **Fork** (top right) → create the fork under your account
 3. Create a [fine-grained personal access token](https://github.com/settings/tokens?type=beta) with **Contents → Read-only** on your fork
 
-### 2. Create the app
+> **Note:** The frontend is pre-built and committed to `frontend/dist/` — no Node.js build step is needed for Git-based deploys.
 
-In your Databricks workspace: **Compute → Apps → Create App**
+#### 2. Create the app
+
+In your Databricks workspace sidebar, navigate to **Apps → Create App** (or **Compute → Apps → Create App** on some workspaces).
 
 | Setting | Value |
 |---|---|
@@ -323,25 +337,60 @@ In your Databricks workspace: **Compute → Apps → Create App**
 | **Repo URL** | `https://github.com/<your-username>/lattice.git` |
 | **Branch** | `main` |
 
-During setup, enter your **GitHub username + PAT** when prompted for Git credentials, and select a **SQL warehouse** (required for cost, lineage, heat, and orphan detection features).
+When prompted for Git credentials, enter your **GitHub username** and the **PAT** from step 1.
 
-### 3. Check system table access (optional)
+You'll also be prompted to select a **SQL warehouse**. This is optional but recommended — it enables cost overlay, lineage, heat dots, UC tags, and orphan detection. If you skip it, the canvas and topology features still work. You can add a warehouse later in the app's resource settings.
 
-On many workspaces, the app service principal inherits system table access automatically — no explicit grants needed. After launch, check **Settings → System Access** inside Lattice to see which features are active.
+#### 3. Open Lattice
 
-If features show as unavailable, an **account admin** can grant access to the `system` catalog. See [INSTALL.md](INSTALL.md) for the full grant SQL. This step can be skipped — the canvas and all core features work without it.
+Once the app status shows **Running**, click the app URL to launch Lattice. The first-run wizard guides you through:
+1. **Welcome** — what Lattice maps
+2. **Catalog scope** — select which catalogs to include (or use all)
+3. **Workspaces** — add additional workspace profiles (optional)
+4. **System access** — pre-flight checks show which features are active
 
-### 4. Set app permissions
+> **First load:** The initial ingestion discovers all workspace assets and queries system tables. This typically takes **30–90 seconds** depending on workspace size. Subsequent loads use caching — the cached graph loads instantly while a background refresh runs.
 
-Go to **Compute → Apps → lattice → Permissions**. Add **All workspace users** with the **Can Use** role to share Lattice across your organization. Without this, only the app creator can access it.
+#### 4. Check system table access (optional)
 
-### 5. Open Lattice
+On many workspaces, the app service principal inherits system table access automatically — no explicit grants needed. Check **Settings → System Access** inside Lattice to see which features are active.
 
-Go to **Compute → Apps → lattice**. Once the status shows **Running**, click the app URL link next to the status badge to launch Lattice. The first-run wizard will guide you through catalog selection, workspace profiles, and system access checks.
+If features show as unavailable, an **account admin** can grant access. To find the app's service principal: go to **Apps → lattice → Settings → Resources** and note the service principal name. Then see [INSTALL.md](INSTALL.md) for the full grant SQL.
 
-> **First load:** The initial ingestion discovers all workspace assets and queries system tables for usage, lineage, and cost data. This typically takes **30–90 seconds** depending on workspace size. Subsequent loads are faster thanks to caching — the cached graph loads instantly while a background refresh runs.
+This step can be skipped entirely — the canvas and all core features work without system table access.
 
-### 6. Add additional workspaces (optional)
+#### 5. Set app permissions
+
+By default, only the app creator can access Lattice. To share it:
+
+Go to **Apps → lattice → Permissions**. Add **All workspace users** with the **Can Use** role.
+
+### Option B: CLI-Based Deploy
+
+Use this if you want to deploy without forking, or if you're making local changes.
+
+```bash
+# 1. Authenticate to your workspace
+databricks auth login --host https://<your-workspace>.cloud.databricks.com --profile my-workspace
+
+# 2. Clone the repo
+git clone https://github.com/databricks-field-eng/lattice.git && cd lattice
+
+# 3. Sync to workspace (frontend/dist/ is pre-built in the repo)
+databricks sync . /Workspace/Users/<your-email>/lattice --profile my-workspace
+
+# 4. Deploy the app
+databricks apps deploy lattice \
+  --source-code-path /Workspace/Users/<your-email>/lattice \
+  --profile my-workspace
+```
+
+If you've made frontend changes, rebuild before syncing:
+```bash
+cd frontend && npm install && npm run build && cd ..
+```
+
+### Add additional workspaces (optional)
 
 Connect Lattice to other Databricks workspaces (dev, staging, production) to switch between them without redeploying.
 
@@ -356,20 +405,60 @@ The workspace switcher appears in the sidebar once you have 2+ profiles. Click a
 
 > You can also add workspaces during the first-run setup wizard (step 3).
 
-### Run Locally (development)
+---
+
+## Run Locally
+
+Lattice can run entirely on your machine — no Databricks App deployment needed.
+
+### Quick start (production build, no Node.js required)
+
+The repo includes a pre-built frontend in `frontend/dist/`. You only need Python:
 
 ```bash
+# Clone and set up Python environment
+git clone https://github.com/databricks-field-eng/lattice.git && cd lattice
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+
+# Authenticate with your workspace (if not already done)
+databricks auth login --host https://<your-workspace>.cloud.databricks.com --profile my-workspace
+
+# Start Lattice
+export DATABRICKS_PROFILE=my-workspace
+python3 -m uvicorn app:app --host 0.0.0.0 --port 8000
+# Open http://localhost:8000
+```
+
+### Development mode (hot-reload frontend)
+
+If you're modifying the frontend, use the Vite dev server for hot reloading:
+
+```bash
+# Backend (terminal 1)
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 export DATABRICKS_PROFILE=my-workspace
 python3 -m uvicorn app:app --host 0.0.0.0 --port 8000
 
-# Frontend (separate terminal)
+# Frontend (terminal 2) — requires Node.js 18+
 cd frontend && npm install && npm run dev
 # Open http://localhost:5173
 ```
 
-See [INSTALL.md](INSTALL.md) for full setup details including warehouse configuration options, all required grants, and environment variables.
+The Vite dev server proxies API requests to the backend on port 8000.
+
+### Optional: SQL warehouse for enrichment
+
+To enable cost, lineage, heat, and UC tag features locally, set the warehouse ID:
+
+```bash
+export DATABRICKS_WAREHOUSE_ID=<your-warehouse-id>
+```
+
+Without this, the canvas and topology features work normally — enrichment features are simply disabled.
+
+See [INSTALL.md](INSTALL.md) for full setup details including all required grants and environment variables.
 
 ---
 

@@ -23,13 +23,15 @@ With just these, Lattice discovers and visualizes all UC assets, compute resourc
 |---|---|---|
 | **Canvas + topology** | Workspace + Apps | — |
 | **Search, filter, focus** | Workspace + Apps | — |
+| **View → Table edges** | Workspace + Apps | — (uses UC `view_dependencies` API) |
 | **Cost overlay & DBU badges** | SQL warehouse | `system.billing.usage` |
 | **Heat dots (hot/warm/cold)** | SQL warehouse | `system.query.history` |
 | **Orphan detection** | SQL warehouse | `system.query.history` |
-| **Table lineage edges** | SQL warehouse | `system.access.table_lineage` |
+| **Table & Job lineage edges** | SQL warehouse | `system.access.table_lineage` |
 | **Column-level lineage** | SQL warehouse | `system.access.column_lineage` |
 | **Job success rates** | SQL warehouse | `system.lakeflow.job_run_timeline` |
 | **Row counts & table sizes** | SQL warehouse | `system.information_schema.table_storage_utilization` |
+| **UC tags** | SQL warehouse | `system.information_schema.table_tags` |
 | **Annotations (tags & notes)** | SQL warehouse + CREATE TABLE on `lattice.metadata` | — |
 | **Workspace switching** | PAT from target workspace (Settings → Developer → Access tokens) | — |
 | **App sharing** | Set **Can Use** permission on the app for workspace users | — |
@@ -112,7 +114,9 @@ The included `app.yaml` also declares a `sql-warehouse` resource with `id: auto`
 
 On many workspaces, the app service principal inherits system table access through group membership — **no explicit grants needed**. Check **Settings → System Access** inside Lattice after launch to see which features are active.
 
-If system table features show as unavailable, an **account admin** (not just workspace admin) can run these grants. Replace `<principal>` with the app service principal name or UUID.
+If system table features show as unavailable, an **account admin** (not just workspace admin) can run these grants.
+
+**Finding the service principal:** Go to **Apps → lattice → Settings → Resources** in the Databricks workspace. The service principal name is shown next to the app's resource assignments. Replace `<principal>` below with that name or UUID.
 
 ```sql
 -- Cost overlay & DBU badges
@@ -188,17 +192,21 @@ The workspace switcher appears in the sidebar once you have 2+ profiles. Click a
 
 **No external infrastructure.** Lattice runs entirely inside your Databricks workspace using the Apps serverless runtime + your SQL warehouse.
 
+> **Important:** `frontend/dist/` is pre-built and committed to the repo so Git-based deployments work without Node.js in the app runtime. If you modify frontend source files, rebuild with `cd frontend && npm run build` and commit the updated `frontend/dist/` before deploying.
+
 ---
 
 ## Configuration Reference
 
 ### app.yaml
 
+Databricks Apps automatically creates a `.venv` and installs `requirements.txt` before running the command — no `pip install` needed in the command itself.
+
 ```yaml
 command:
   - /bin/bash
   - -c
-  - "pip install -r requirements.txt && python3 -m uvicorn app:app --host 0.0.0.0 --port 8000"
+  - ".venv/bin/python3 -m uvicorn app:app --host 0.0.0.0 --port 8000"
 env:
   - name: DATABRICKS_WAREHOUSE_ID
     valueFrom: sql-warehouse
@@ -217,8 +225,11 @@ resources:
 | `LATTICE_CATALOG_LIMIT` | `20` | Max catalogs when no filter set |
 | `LATTICE_SCHEMA_LIMIT` | `20` | Schemas per catalog |
 | `LATTICE_TABLE_LIMIT` | `50` | Tables per schema |
+| `LATTICE_LINEAGE_QUERY_LIMIT` | `10000` | Max rows from `system.access.table_lineage` |
+| `LATTICE_LINEAGE_BACKFILL_JOBS` | `500` | Max jobs backfilled from lineage |
+| `LATTICE_LINEAGE_BACKFILL_TABLES` | `2000` | Max tables backfilled from lineage |
 
-All of these can be configured in the **Settings panel** inside the app after launch — no redeploy needed.
+All of these can be configured in the **Settings panel** inside the app after launch — no redeploy needed. Lineage settings are under **Settings → Advanced**.
 
 ---
 
@@ -272,21 +283,45 @@ Your settings (`lattice_config.json`) are excluded from sync and will not be ove
 
 ## Local Development
 
+### Quick start (production build, no Node.js required)
+
+The repo includes a pre-built frontend in `frontend/dist/`. You only need Python 3.10+:
+
 ```bash
-# Install dependencies
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 
-# Set your workspace profile
-export DATABRICKS_PROFILE=my-profile
+# Authenticate if not already done
+databricks auth login --host https://<your-workspace>.cloud.databricks.com --profile my-profile
 
-# Start the backend
+export DATABRICKS_PROFILE=my-profile
+python3 -m uvicorn app:app --host 0.0.0.0 --port 8000
+# Open http://localhost:8000
+```
+
+### Development mode (hot-reload frontend)
+
+If you're modifying the frontend, use the Vite dev server (requires Node.js 18+):
+
+```bash
+# Backend (terminal 1)
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+export DATABRICKS_PROFILE=my-profile
 python3 -m uvicorn app:app --host 0.0.0.0 --port 8000
 
-# In another terminal, start the frontend dev server
+# Frontend (terminal 2)
 cd frontend && npm install && npm run dev
 # Open http://localhost:5173
 ```
+
+### Optional: SQL warehouse for enrichment
+
+```bash
+export DATABRICKS_WAREHOUSE_ID=<your-warehouse-id>
+```
+
+This enables cost overlay, lineage, heat dots, UC tags, and orphan detection. Without it, the canvas and topology features work normally.
 
 ---
 
