@@ -1,6 +1,6 @@
 import { useState, Fragment } from 'react'
 import { useGraphStore } from '../../stores/graphStore'
-import type { ScorecardOffenderGroup, ScorecardStructure } from '../../stores/graphStore'
+import type { ScorecardOffenderGroup, ScorecardStructure, ScorecardCatalog } from '../../stores/graphStore'
 
 function ImpactBadge({ score }: { score: number | undefined }) {
   if (score == null) return null
@@ -152,6 +152,13 @@ const OFFENDER_DIM_MAP: Record<string, string> = {
 export function RecommendationsPanel() {
   const { scorecardData, scorecardLoading, fetchScorecard, scorecardDisabledDims } = useGraphStore()
   const [catalogFilter, setCatalogFilter] = useState<string>('')
+  // Preserve the catalog list from the initial (unfiltered) scorecard load
+  const [catalogList, setCatalogList] = useState<ScorecardCatalog[]>([])
+
+  // Capture catalog list from the first load (before any filtering)
+  if (scorecardData?.by_catalog && scorecardData.by_catalog.length > 0 && catalogList.length === 0) {
+    setCatalogList(scorecardData.by_catalog)
+  }
 
   if (!scorecardData?.available && !scorecardLoading) {
     return <div className="p-6 text-gray-400 text-sm">Scorecard data not available.</div>
@@ -171,7 +178,6 @@ export function RecommendationsPanel() {
     return !scorecardDisabledDims.has(dimKey)
   })
   const workspace_structure = data?.workspace_structure
-  const by_catalog = data?.by_catalog
 
   const handleCatalogChange = (cat: string) => {
     setCatalogFilter(cat)
@@ -194,14 +200,14 @@ export function RecommendationsPanel() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <h3 className="text-[15px] font-medium text-gray-800 dark:text-gray-200">Recommendations</h3>
-        {by_catalog && by_catalog.length > 0 && (
+        {catalogList.length > 0 && (
           <select
             value={catalogFilter}
             onChange={e => handleCatalogChange(e.target.value)}
             className="text-[12px] text-gray-500 dark:text-gray-400 bg-transparent border border-black/10 dark:border-white/10 rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-indigo-400"
           >
             <option value="">All catalogs</option>
-            {by_catalog.map(c => <option key={c.catalog_name} value={c.catalog_name}>{c.catalog_name}</option>)}
+            {catalogList.map(c => <option key={c.catalog_name} value={c.catalog_name}>{c.catalog_name}</option>)}
           </select>
         )}
       </div>

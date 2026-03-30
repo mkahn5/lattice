@@ -64,12 +64,30 @@ export function ScorecardPanel() {
   const [catalogOpen, setCatalogOpen] = useState(true)
   const notesRef = useRef<HTMLTextAreaElement>(null)
   const [showExport, setShowExport] = useState(false)
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     if (scorecardData?.notes !== undefined) {
       setNotes(scorecardData.notes || '')
     }
   }, [scorecardData?.notes])
+
+  // Debounced auto-save: save 1s after last keystroke
+  const handleNotesChange = (value: string) => {
+    setNotes(value)
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
+    saveTimerRef.current = setTimeout(() => saveScorecardNotes(value), 1000)
+  }
+
+  // Save immediately on unmount (overlay close)
+  useEffect(() => {
+    return () => {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
+      // Save current notes value on unmount
+      const currentNotes = notesRef.current?.value
+      if (currentNotes !== undefined) saveScorecardNotes(currentNotes)
+    }
+  }, [])
 
   // Recompute composite excluding disabled dimensions
   const activeDims = (scorecardData?.dimensions || []).filter(d => !disabledDims.has(d.key))
@@ -244,7 +262,7 @@ export function ScorecardPanel() {
         <textarea
           ref={notesRef}
           value={notes}
-          onChange={e => setNotes(e.target.value)}
+          onChange={e => handleNotesChange(e.target.value)}
           onBlur={() => saveScorecardNotes(notes)}
           placeholder="Add notes about this workspace..."
           className="w-full h-20 text-[12px] text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-800 border border-black/10 dark:border-white/10 rounded-lg p-2.5 resize-none focus:outline-none focus:ring-1 focus:ring-indigo-400 placeholder:text-gray-300 dark:placeholder:text-gray-600"
