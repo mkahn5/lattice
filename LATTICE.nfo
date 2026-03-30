@@ -16,7 +16,7 @@
    |              V I S U A L   I N T E L L I G E N C E   F O R                           |
    |                      D A T A B R I C K S                                             |
    |                                                                                      |
-   |                           v 0 . 5 . 4                                                |
+   |                           v 0 . 6 . 0                                                |
    |                                                                                      |
     \____                                                                            ____/
          \____                                                                  ____/
@@ -262,6 +262,7 @@
     =                  R E L E A S E   H I S T O R Y                              =
     ===============================================================================
 
+       v0.6.0  Workspace Scorecard (score, offenders, structure, export)
        v0.5.4  Job->Table Lineage, UC Tags, Configurable Limits
        v0.5.3  View Dependency Edges (derivedFrom)
        v0.5.2  AI/ML Stack Connectors (Serving, VectorSearch, Genie)
@@ -282,10 +283,10 @@
        [DONE]  Phase 5.2   AI/ML stack connectors
        [DONE]  Phase 5.3   View deps, Job lineage, UC tags
        [DONE]  Phase 10    Annotations & bookmarking
+       [DONE]  Phase 6.0   Workspace Scorecard
 
-       [NEXT]  Phase 6     MCP server (graph as agent tools)
-       [NEXT]  Phase 7     Architecture diagram export
-       [NEXT]  Phase 8     Governance scorecard
+       [NEXT]  Phase 7     MCP server (graph as agent tools)
+       [NEXT]  Phase 8     Architecture diagram export
        [NEXT]  Phase 9     Ontology writeback (edit -> UC)
 
 

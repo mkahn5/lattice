@@ -606,6 +606,21 @@ After first launch, configure catalog scope, limits, and warehouse in **Settings
 
 ## Release Notes
 
+### v0.6.0 - Workspace Scorecard (Mar 30, 2026)
+- **Workspace Scorecard:** Full-screen overlay with composite governance score (0-100), letter grade (A-F), and delta vs. previous ingestion. Triggered by the clipboard icon in the sidebar or `G` keyboard shortcut.
+- **5 scored dimensions:** Freshness (35%), Cost Efficiency (25%), Orphan Rate (20%), UC Tag Coverage (10%), Compute Utilization (10%). Each with progress bars and color coding (green/amber/red).
+- **Dimension opt-out:** Uncheck any dimension to exclude it from the score. Weight redistributes proportionally. Disabled dimensions also hide their related offender groups.
+- **7 offender categories:** Cold + Costly Tables, Idle Compute, Orphaned Tables, Untagged Tables, Failing Jobs, Stale Jobs, Undocumented Tables. Ranked by impact score. Full list returned for exports, UI shows 10 with "Show all" toggle.
+- **Expandable offender cards:** Click any offender to see rich detail - owner, created by, created date, last queried, heat, table type, row count, size, schedule, comment.
+- **Workspace Structure observations:** Oversized schemas, tables in default schema, empty schemas, single-table schemas, catalog concentration. Informational, not scored.
+- **Per-catalog breakdown:** Composite score per catalog, sorted worst-first. Hidden when all catalogs score 0 or single-catalog workspace.
+- **Notes:** Free-text textarea persisted per workspace. Auto-saves on blur. Included in all exports.
+- **Delta signal:** Compares current score to previous cached ingestion. Shows +/- N with directional arrow.
+- **Export:** JSON (full payload), CSV (offenders with owner/created/queried columns), Markdown (copy to clipboard for Slack/Confluence). All respect dimension opt-out and include notes.
+- **Scorecard resets on workspace switch** and graph refresh.
+- **Quick Start docs updated:** Correct Databricks Apps workflow (Create custom app, App configuration for warehouse, Deploy from Git with branch reference).
+- **Em dashes removed** from all documentation files.
+
 ### v0.5.4 - Job→Table Lineage, UC Tags & Configurable Limits (Mar 20, 2026)
 - **Lineage-driven backfill:** After fetching lineage from `system.access.table_lineage`, Lattice automatically backfills missing jobs and tables so Job→Table edges connect. Previously, ingestion limits meant most lineage endpoints were missing from the graph - now the full Job → Table → View chain is visible.
 - **UC tag ingestion:** Tags set via `ALTER TABLE SET TAGS` are now ingested from `system.information_schema.table_tags` and displayed as pills in the detail panel. Tags are searchable in the canvas search box - search by tag key or value (e.g., "finance", "critical") to find tagged assets.
@@ -721,9 +736,9 @@ After first launch, configure catalog scope, limits, and warehouse in **Settings
 | 5.2 | AI/ML stack connectors: Serving Endpoints, Vector Search, Genie Spaces | Done |
 | 5.3 | View dependency edges, Job→Table lineage backfill, UC tag ingestion | Done |
 | 10 | Annotation & Bookmarking: tags, notes, canvas dots, tag filter, multi-select | Done |
-| 6 | MCP server: expose graph as agent-callable tools (search, lineage, impact, orphans) | Planned |
-| 7 | Automated architecture diagram export (Mermaid, draw.io, Lucidchart) | Planned |
-| 8 | Governance scorecard: workspace health score with trend over time | Planned |
+| 6.0 | Workspace Scorecard: composite score, offenders, structure, notes, export | Done |
+| 7 | MCP server: expose graph as agent-callable tools (search, lineage, impact, orphans) | Planned |
+| 8 | Automated architecture diagram export (Mermaid, draw.io, Lucidchart) | Planned |
 | 9 | Ontology writeback: edit owner, description, tags inline → write back to UC. Draft/publish workflow | Planned |
 
 ---
