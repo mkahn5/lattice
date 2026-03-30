@@ -619,8 +619,6 @@ After first launch, configure catalog scope, limits, and warehouse in **Settings
 - **Export:** JSON (full payload), CSV (offenders with owner/created/queried columns), Markdown (copy to clipboard for Slack/Confluence). All respect dimension opt-out and include notes.
 - **Scorecard resets on workspace switch** and graph refresh.
 - **Quick Start docs updated:** Correct Databricks Apps workflow (Create custom app, App configuration for warehouse, Deploy from Git with branch reference).
-- **Em dashes removed** from all documentation files.
-
 ### v0.5.4 - Job→Table Lineage, UC Tags & Configurable Limits (Mar 20, 2026)
 - **Lineage-driven backfill:** After fetching lineage from `system.access.table_lineage`, Lattice automatically backfills missing jobs and tables so Job→Table edges connect. Previously, ingestion limits meant most lineage endpoints were missing from the graph - now the full Job → Table → View chain is visible.
 - **UC tag ingestion:** Tags set via `ALTER TABLE SET TAGS` are now ingested from `system.information_schema.table_tags` and displayed as pills in the detail panel. Tags are searchable in the canvas search box - search by tag key or value (e.g., "finance", "critical") to find tagged assets.
