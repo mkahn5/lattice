@@ -85,17 +85,29 @@ function OffenderCard({ item }: { item: Record<string, unknown> }) {
 
 const DISPLAY_LIMIT = 10
 
+const GROUP_TOOLTIPS: Record<string, string> = {
+  cold_costly_tables: 'Tables with no queries in 30 days that still have DBU cost attributed to them.',
+  idle_compute: 'Warehouses and clusters with zero DBU activity in the last 30 days.',
+  orphaned_tables: 'Tables with no non-structural connections (no job, dashboard, view, or lineage edge references them). A high count on dev/test workspaces is normal. Production workspaces with active jobs and dashboards should have fewer orphans.',
+  untagged_tables: 'Tables with no UC tags set. Tags are set via ALTER TABLE SET TAGS.',
+  failing_jobs: 'Jobs with a success rate below 80% in the last 30 days.',
+  stale_jobs: 'Jobs that exist but have not run in the last 30 days.',
+  undocumented_tables: 'Tables with no table-level comment. Sorted by query frequency so high-traffic undocumented tables appear first.',
+}
+
 function OffenderGroup({ group, defaultExpanded }: { group: ScorecardOffenderGroup; defaultExpanded: boolean }) {
   const [expanded, setExpanded] = useState(defaultExpanded)
   const [showAll, setShowAll] = useState(false)
   const displayItems = showAll ? group.items : group.items.slice(0, DISPLAY_LIMIT)
   const hasMore = group.items.length > DISPLAY_LIMIT
+  const tooltip = GROUP_TOOLTIPS[group.category] || ''
 
   return (
     <div className="mb-1">
       <button
         onClick={() => setExpanded(v => !v)}
         className="text-[11px] font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wide mb-1 flex items-center gap-1"
+        title={tooltip}
       >
         {group.label} ({group.count}) {expanded ? '▾' : '▸'}
       </button>

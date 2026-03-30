@@ -3,12 +3,21 @@ import { Download, Loader } from 'lucide-react'
 import { useGraphStore } from '../../stores/graphStore'
 import type { ScorecardDimension, ScorecardCatalog } from '../../stores/graphStore'
 
+const DIM_TOOLTIPS: Record<string, string> = {
+  freshness: 'Percentage of tables queried within the last 30 days. Tables accessed only via Spark clusters (not SQL warehouses) may appear cold.',
+  cost_efficiency: 'Percentage of workspace DBU not wasted on cold/unused tables. Based on cost attribution from system.billing.usage.',
+  orphan_rate: 'Percentage of tables with at least one non-structural connection (job, dashboard, view, or lineage edge). A high orphan rate on dev/test workspaces is normal. Production workspaces with active jobs and dashboards should have a lower rate.',
+  tag_coverage: 'Percentage of tables with at least one UC tag set via ALTER TABLE SET TAGS.',
+  compute_utilization: 'Percentage of warehouses and clusters with DBU activity in the last 30 days.',
+}
+
 function DimensionBar({ dim, enabled, onToggle }: { dim: ScorecardDimension; enabled: boolean; onToggle: () => void }) {
   const color = dim.score >= 65 ? 'bg-emerald-200 dark:bg-emerald-900'
     : dim.score >= 35 ? 'bg-amber-200 dark:bg-amber-900'
     : 'bg-red-200 dark:bg-red-900'
+  const tooltip = DIM_TOOLTIPS[dim.key] || ''
   return (
-    <div className={`mb-1 ${!enabled ? 'opacity-40' : ''}`}>
+    <div className={`mb-1 ${!enabled ? 'opacity-40' : ''}`} title={tooltip}>
       <div className="flex items-center justify-between text-[12px] mb-1 gap-1">
         <label className="flex items-center gap-1.5 cursor-pointer min-w-0">
           <input
