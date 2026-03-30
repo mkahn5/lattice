@@ -8,4 +8,4 @@ env:
 resources:
   - name: sql-warehouse
     sql_warehouse:
-      id: auto
+      id: 557fdf4666f4883c

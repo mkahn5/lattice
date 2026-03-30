@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lattice Scorecard UI Mockup</title>
+<style>
+  :root {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f5f5f0;
+    --bg-tertiary: #eeedeb;
+    --text-primary: #1a1a1a;
+    --text-secondary: #6b6b6b;
+    --text-tertiary: #9a9a9a;
+    --border: rgba(0,0,0,0.12);
+    --border-hover: rgba(0,0,0,0.25);
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-mono: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    --green-fill: #9FE1CB;
+    --amber-fill: #FAEEDA;
+    --red-fill: #F7C1C1;
+    --green-text: #1D9E75;
+    --amber-text: #854F0B;
+    --amber-bg: #FAEEDA;
+    --red-text: #A32D2D;
+    --red-bg: #FCEBEB;
+    --blue-bg: #E6F1FB;
+    --blue-text: #185FA5;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg-primary: #1e1e1e;
+      --bg-secondary: #2a2a2a;
+      --bg-tertiary: #333333;
+      --text-primary: #e8e8e8;
+      --text-secondary: #a0a0a0;
+      --text-tertiary: #707070;
+      --border: rgba(255,255,255,0.12);
+      --border-hover: rgba(255,255,255,0.25);
+      --green-fill: #085041;
+      --amber-fill: #412402;
+      --red-fill: #501313;
+      --green-text: #5DCAA5;
+      --amber-text: #FAC775;
+      --amber-bg: #412402;
+      --red-text: #F09595;
+      --red-bg: #501313;
+      --blue-bg: #042C53;
+      --blue-text: #85B7EB;
+    }
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: var(--font-sans); background: var(--bg-tertiary); padding: 2rem; color: var(--text-primary); }
+
+  .layout { display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 16px; min-height: 520px; max-width: 900px; margin: 0 auto; }
+
+  .panel {
+    background: var(--bg-primary);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .section-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .timestamp { font-size: 11px; color: var(--text-tertiary); }
+
+  .score-headline { display: flex; align-items: baseline; gap: 10px; }
+  .score-number { font-size: 42px; font-weight: 500; color: var(--text-primary); line-height: 1; }
+  .grade-badge {
+    background: var(--amber-bg);
+    color: var(--amber-text);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 3px 10px;
+    border-radius: var(--radius-md);
+  }
+  .delta { font-size: 14px; color: var(--green-text); font-weight: 500; }
+  .delta-note { font-size: 12px; color: var(--text-tertiary); margin-top: -8px; }
+
+  .dim-row { margin-bottom: 2px; }
+  .dim-header { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px; }
+  .dim-label { color: var(--text-secondary); }
+  .dim-score { font-weight: 500; color: var(--text-primary); }
+  .dim-track { height: 6px; background: var(--bg-tertiary); border-radius: 3px; overflow: hidden; }
+  .dim-fill { height: 100%; border-radius: 3px; }
+  .fill-green { background: var(--green-fill); }
+  .fill-amber { background: var(--amber-fill); }
+  .fill-red { background: var(--red-fill); }
+
+  .catalog-section { border-top: 0.5px solid var(--border); padding-top: 12px; margin-top: 4px; }
+  .catalog-title { font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-bottom: 8px; }
+  .catalog-row { display: flex; align-items: center; gap: 8px; font-size: 12px; margin-bottom: 6px; }
+  .catalog-name { color: var(--text-secondary); min-width: 50px; font-family: var(--font-mono); }
+  .catalog-track { flex: 1; height: 5px; background: var(--bg-tertiary); border-radius: 3px; overflow: hidden; }
+  .catalog-fill { height: 100%; border-radius: 3px; }
+  .catalog-score { font-weight: 500; min-width: 20px; text-align: right; color: var(--text-primary); }
+
+  .btn-row { display: flex; gap: 8px; margin-top: auto; }
+  .btn {
+    flex: 1;
+    font-size: 12px;
+    padding: 7px 0;
+    background: transparent;
+    border: 0.5px solid var(--border-hover);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    cursor: pointer;
+    font-family: var(--font-sans);
+  }
+  .btn:hover { background: var(--bg-secondary); }
+
+  .reco-title { font-size: 15px; font-weight: 500; color: var(--text-primary); }
+  .reco-filter { font-size: 12px; color: var(--text-tertiary); }
+  .reco-banner {
+    background: var(--blue-bg);
+    border-radius: var(--radius-md);
+    padding: 10px 14px;
+    font-size: 13px;
+    color: var(--blue-text);
+  }
+  .reco-banner b { font-weight: 600; }
+
+  .group-label {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 12px 0 4px;
+  }
+  .group-label:first-of-type { margin-top: 4px; }
+
+  .offender {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: var(--radius-md);
+    border: 0.5px solid var(--border);
+    margin-bottom: 2px;
+    cursor: pointer;
+  }
+  .offender:hover { border-color: var(--border-hover); }
+  .offender-info { min-width: 0; flex: 1; }
+  .offender-fqn {
+    font-size: 13px;
+    font-weight: 500;
+    font-family: var(--font-mono);
+    color: var(--text-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .offender-detail { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+  .impact-high {
+    background: var(--red-bg);
+    color: var(--red-text);
+    font-size: 11px;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: var(--radius-md);
+    white-space: nowrap;
+  }
+  .impact-med {
+    background: var(--amber-bg);
+    color: var(--amber-text);
+    font-size: 11px;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: var(--radius-md);
+    white-space: nowrap;
+  }
+
+  .structure-section { border-top: 0.5px solid var(--border); padding-top: 12px; margin-top: 12px; }
+  .structure-item { font-size: 12px; color: var(--text-secondary); padding: 3px 0; }
+  .structure-warn { color: var(--amber-text); }
+  .structure-good { color: var(--green-text); }
+
+  .export-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; max-width: 900px; margin: 16px auto 0; }
+  .export-card {
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    padding: 1rem;
+  }
+  .export-label {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+  }
+  .export-desc { font-size: 13px; color: var(--text-secondary); }
+</style>
+</head>
+<body>
+
+<!--
+  LATTICE SCORECARD UI MOCKUP
+  ===========================
+  Reference implementation for the Workspace Governance Scorecard.
+  Open this file in a browser to see the exact visual style.
+
+  Dimensions shown here use the FINALIZED set:
+  1. Freshness (35%)
+  2. Cost Efficiency (25%)
+  3. Orphan Rate (20%)
+  4. UC Tag Coverage (10%)
+  5. Compute Utilization (10%)
+
+  Spec: docs/SPEC_DATA_QUALITY_SCORECARD.md
+-->
+
+<div class="layout">
+  <!-- LEFT PANEL: SCORECARD -->
+  <div class="panel">
+    <div style="display:flex; align-items:center; justify-content:space-between;">
+      <span class="section-label">Governance scorecard</span>
+      <span class="timestamp">Mar 26</span>
+    </div>
+
+    <div class="score-headline">
+      <span class="score-number">68</span>
+      <span class="grade-badge">B</span>
+      <span class="delta">&#9650; +3</span>
+    </div>
+    <p class="delta-note">vs. previous ingestion</p>
+
+    <div style="display:flex; flex-direction:column; gap:10px; margin-top:4px;">
+      <div class="dim-row">
+        <div class="dim-header"><span class="dim-label">Freshness</span><span class="dim-score">72</span></div>
+        <div class="dim-track"><div class="dim-fill fill-amber" style="width:72%"></div></div>
+      </div>
+      <div class="dim-row">
+        <div class="dim-header"><span class="dim-label">Cost efficiency</span><span class="dim-score">58</span></div>
+        <div class="dim-track"><div class="dim-fill fill-amber" style="width:58%"></div></div>
+      </div>
+      <div class="dim-row">
+        <div class="dim-header"><span class="dim-label">Orphan rate</span><span class="dim-score">65</span></div>
+        <div class="dim-track"><div class="dim-fill fill-amber" style="width:65%"></div></div>
+      </div>
+      <div class="dim-row">
+        <div class="dim-header"><span class="dim-label">UC tag coverage</span><span class="dim-score">38</span></div>
+        <div class="dim-track"><div class="dim-fill fill-red" style="width:38%"></div></div>
+      </div>
+      <div class="dim-row">
+        <div class="dim-header"><span class="dim-label">Compute utilization</span><span class="dim-score">90</span></div>
+        <div class="dim-track"><div class="dim-fill fill-green" style="width:90%"></div></div>
+      </div>
+    </div>
+
+    <div class="catalog-section">
+      <p class="catalog-title">By catalog</p>
+      <div class="catalog-row">
+        <span class="catalog-name">prod</span>
+        <div class="catalog-track"><div class="catalog-fill fill-green" style="width:72%"></div></div>
+        <span class="catalog-score">72</span>
+      </div>
+      <div class="catalog-row">
+        <span class="catalog-name">staging</span>
+        <div class="catalog-track"><div class="catalog-fill fill-amber" style="width:61%"></div></div>
+        <span class="catalog-score">61</span>
+      </div>
+      <div class="catalog-row">
+        <span class="catalog-name">dev</span>
+        <div class="catalog-track"><div class="catalog-fill fill-red" style="width:51%"></div></div>
+        <span class="catalog-score">51</span>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn">View recommendations</button>
+      <button class="btn">Export</button>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL: RECOMMENDATIONS -->
+  <div class="panel">
+    <div style="display:flex; align-items:center; justify-content:space-between;">
+      <span class="reco-title">Recommendations</span>
+      <span class="reco-filter">All catalogs</span>
+    </div>
+
+    <div class="reco-banner">Fix the top 5 items to move from <b>B (68)</b> &rarr; <b>B (74)</b></div>
+
+    <div>
+      <p class="group-label">Cold + costly tables (7)</p>
+      <div class="offender">
+        <div class="offender-info">
+          <p class="offender-fqn">prod.bronze.raw_events</p>
+          <p class="offender-detail">94 days stale &middot; 124 DBU/mo</p>
+        </div>
+        <span class="impact-high">+4.2 pts</span>
+      </div>
+      <div class="offender">
+        <div class="offender-info">
+          <p class="offender-fqn">prod.bronze.legacy_impressions</p>
+          <p class="offender-detail">182 days stale &middot; 89 DBU/mo</p>
+        </div>
+        <span class="impact-high">+3.8 pts</span>
+      </div>
+
+      <p class="group-label">Idle compute (2)</p>
+      <div class="offender">
+        <div class="offender-info">
+          <p class="offender-fqn">legacy-warehouse</p>
+          <p class="offender-detail">STOPPED &middot; 0 DBU/30d</p>
+        </div>
+        <span class="impact-high">+2.1 pts</span>
+      </div>
+
+      <p class="group-label">Orphaned tables (14)</p>
+      <div class="offender">
+        <div class="offender-info">
+          <p class="offender-fqn">staging.analytics.tmp_cohort_v2</p>
+          <p class="offender-detail">No upstream or downstream &middot; created 2025-08-14</p>
+        </div>
+        <span class="impact-med">+1.4 pts</span>
+      </div>
+
+      <p class="group-label">Failing jobs (3)</p>
+      <div class="offender">
+        <div class="offender-info">
+          <p class="offender-fqn">etl_daily_refresh</p>
+          <p class="offender-detail">65% success rate &middot; feeds 12 tables</p>
+        </div>
+        <span class="impact-med">+1.1 pts</span>
+      </div>
+
+      <p class="group-label">Untagged tables (194)</p>
+      <div class="offender">
+        <div class="offender-info">
+          <p class="offender-fqn">prod.gold.customer_ltv</p>
+          <p class="offender-detail">Queried 847 times/mo &middot; no UC tags</p>
+        </div>
+        <span class="impact-med">+0.8 pts</span>
+      </div>
+
+      <p class="group-label">Undocumented tables (160)</p>
+      <div class="offender">
+        <div class="offender-info">
+          <p class="offender-fqn">prod.gold.revenue_summary</p>
+          <p class="offender-detail">Queried 1,204 times/mo &middot; no table comment</p>
+        </div>
+        <span class="impact-med">+0.6 pts</span>
+      </div>
+
+      <!-- WORKSPACE STRUCTURE -->
+      <div class="structure-section">
+        <p class="group-label">Workspace structure</p>
+        <p class="structure-item"><span class="structure-warn">&#9888;</span> 3 schemas have 200+ tables (silver: 412, bronze: 389, staging: 234)</p>
+        <p class="structure-item"><span class="structure-warn">&#9888;</span> 47 tables in 'default' schema</p>
+        <p class="structure-item"><span class="structure-warn">&#9888;</span> 12 empty schemas (no tables)</p>
+        <p class="structure-item"><span class="structure-good">&#10003;</span> 18 schemas with 5&ndash;100 tables (well-sized)</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- EXPORT OPTIONS -->
+<div class="export-row">
+  <div class="export-card">
+    <p class="export-label">Export: JSON</p>
+    <p class="export-desc">Full scorecard payload via API or download. Agent-readable for automated workflows.</p>
+  </div>
+  <div class="export-card">
+    <p class="export-label">Export: CSV</p>
+    <p class="export-desc">Offenders list as a flat table. Drop into a spreadsheet, assign owners, track fixes.</p>
+  </div>
+  <div class="export-card">
+    <p class="export-label">Export: Markdown</p>
+    <p class="export-desc">Summary report for Slack or Confluence. Score, top offenders, fix-to-target estimate.</p>
+  </div>
+</div>
+
+</body>
+</html>

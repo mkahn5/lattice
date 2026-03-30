@@ -7,6 +7,7 @@ import { DetailPanel } from './components/DetailPanel'
 import { MultiSelectPanel } from './components/DetailPanel/MultiSelectPanel'
 import { FirstRunWizard } from './components/FirstRunWizard'
 import { SettingsPanel } from './components/SettingsPanel'
+import { ScorecardOverlay } from './components/Scorecard/ScorecardOverlay'
 
 interface Progress {
   step: string
@@ -17,10 +18,23 @@ interface Progress {
 }
 
 export default function App() {
-  const { loadGraph, loadInfo, fetchAnnotations, fetchConfig, selectedNodeIds, showWizard, showSettings } = useGraphStore()
+  const { loadGraph, loadInfo, fetchAnnotations, fetchConfig, selectedNodeIds, showWizard, showSettings, showScorecard, setShowScorecard } = useGraphStore()
   const pollRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const graphLoadedRef = useRef(false)
   const prevGraphReadyRef = useRef(false)
+
+  // Keyboard shortcut: G to toggle scorecard
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'g' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        const tag = (e.target as HTMLElement)?.tagName
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return
+        setShowScorecard(!useGraphStore.getState().showScorecard)
+      }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [])
 
   useEffect(() => {
     loadInfo()
@@ -72,6 +86,7 @@ export default function App() {
       {selectedNodeIds.size > 1 ? <MultiSelectPanel /> : <DetailPanel />}
       {showWizard && <FirstRunWizard />}
       {showSettings && <SettingsPanel />}
+      {showScorecard && <ScorecardOverlay />}
     </div>
   )
 }

@@ -1,6 +1,6 @@
-# Lattice — Installation Guide
+# Lattice - Installation Guide
 
-Lattice is an ontology and visual intelligence platform for Databricks workspaces. It builds a live ontology of your environment — mapping all Unity Catalog assets, compute resources, jobs, dashboards, apps, model serving endpoints, vector search indexes, and Genie spaces as typed entities with semantic relationships into a navigable knowledge graph.
+Lattice is an ontology and visual intelligence platform for Databricks workspaces. It builds a live ontology of your environment - mapping all Unity Catalog assets, compute resources, jobs, dashboards, apps, model serving endpoints, vector search indexes, and Genie spaces as typed entities with semantic relationships into a navigable knowledge graph.
 
 ---
 
@@ -15,15 +15,15 @@ Lattice is an ontology and visual intelligence platform for Databricks workspace
 | **Workspace access** | Permission to create Databricks Apps |
 | **GitHub PAT** | Read-only access to the Lattice repo (entered during app setup) |
 
-With just these, Lattice discovers and visualizes all UC assets, compute resources, jobs, dashboards, apps, serving endpoints, vector search indexes, and Genie spaces — full topology, search, filtering, layout modes, focus view, and export.
+With just these, Lattice discovers and visualizes all UC assets, compute resources, jobs, dashboards, apps, serving endpoints, vector search indexes, and Genie spaces - full topology, search, filtering, layout modes, focus view, and export.
 
 ### Full features (mapped to requirements)
 
 | Feature | Requires | System table |
 |---|---|---|
-| **Canvas + topology** | Workspace + Apps | — |
-| **Search, filter, focus** | Workspace + Apps | — |
-| **View → Table edges** | Workspace + Apps | — (uses UC `view_dependencies` API) |
+| **Canvas + topology** | Workspace + Apps | -|
+| **Search, filter, focus** | Workspace + Apps | -|
+| **View → Table edges** | Workspace + Apps | - (uses UC `view_dependencies` API) |
 | **Cost overlay & DBU badges** | SQL warehouse | `system.billing.usage` |
 | **Heat dots (hot/warm/cold)** | SQL warehouse | `system.query.history` |
 | **Orphan detection** | SQL warehouse | `system.query.history` |
@@ -32,9 +32,9 @@ With just these, Lattice discovers and visualizes all UC assets, compute resourc
 | **Job success rates** | SQL warehouse | `system.lakeflow.job_run_timeline` |
 | **Row counts & table sizes** | SQL warehouse | `system.information_schema.table_storage_utilization` |
 | **UC tags** | SQL warehouse | `system.information_schema.table_tags` |
-| **Annotations (tags & notes)** | SQL warehouse + CREATE TABLE on `lattice.metadata` | — |
-| **Workspace switching** | PAT from target workspace (Settings → Developer → Access tokens) | — |
-| **App sharing** | Set **Can Use** permission on the app for workspace users | — |
+| **Annotations (tags & notes)** | SQL warehouse + CREATE TABLE on `lattice.metadata` | -|
+| **Workspace switching** | PAT from target workspace (Settings → Developer → Access tokens) | -|
+| **App sharing** | Set **Can Use** permission on the app for workspace users | -|
 
 > **Graceful degradation:** Every system table feature is optional. If a warehouse isn't configured or a grant is missing, that feature is disabled and the rest of the app works normally. Check **Settings → System Access** inside Lattice for per-feature status.
 
@@ -64,15 +64,14 @@ Databricks Apps requires you to deploy from a repository you own. Fork Lattice t
 
 **Option A: From the Databricks UI**
 
-1. Go to **Compute → Apps → Create App**
-2. Set:
-   - **Name:** `lattice`
-   - **Description:** Ontology and visual intelligence for this workspace
-3. Under **Source**, select **Git repository**
-4. Enter your fork URL: `https://github.com/<your-username>/lattice.git`
-5. Set the branch to `main`
-6. When prompted for Git credentials, enter your **GitHub username** and paste the **PAT** from Step 2
-7. Click **Create**
+1. Go to **Apps → Create App**
+2. Select **Create a custom app** - "Bring your code and resources to build an app from scratch"
+3. Set the app name to `lattice` and click **Create**
+4. Under **Source**, select **Connect to a Git repository**
+5. Enter your fork URL: `https://github.com/<your-username>/lattice.git`
+6. Set the branch to `main`
+7. When prompted for Git credentials, enter your **GitHub username** and paste the **PAT** from Step 2
+8. On the **App configuration** screen, select a **SQL warehouse**. This enables cost overlay, lineage, heat dots, UC tags, and orphan detection
 
 **Option B: From the Databricks CLI (alternative)**
 
@@ -97,7 +96,7 @@ databricks apps deploy lattice \
 
 The app needs a SQL warehouse to query system tables for cost, lineage, heat, and orphan detection.
 
-**During Databricks App setup**, you'll be prompted to select a SQL warehouse. This injects the `DATABRICKS_WAREHOUSE_ID` environment variable into the app automatically — no manual configuration needed.
+**During Databricks App setup**, you'll be prompted to select a SQL warehouse. This injects the `DATABRICKS_WAREHOUSE_ID` environment variable into the app automatically - no manual configuration needed.
 
 If you need to change the warehouse later:
 
@@ -112,7 +111,7 @@ The included `app.yaml` also declares a `sql-warehouse` resource with `id: auto`
 
 ### Step 5: Grant System Table Access
 
-On many workspaces, the app service principal inherits system table access through group membership — **no explicit grants needed**. Check **Settings → System Access** inside Lattice after launch to see which features are active.
+On many workspaces, the app service principal inherits system table access through group membership -**no explicit grants needed**. Check **Settings → System Access** inside Lattice after launch to see which features are active.
 
 If system table features show as unavailable, an **account admin** (not just workspace admin) can run these grants.
 
@@ -138,13 +137,13 @@ GRANT USE SCHEMA ON SCHEMA system.lakeflow TO `<principal>`;
 GRANT SELECT ON TABLE system.lakeflow.job_run_timeline TO `<principal>`;
 ```
 
-> **Note:** Granting on the `system` catalog requires the **account admin** role, not just workspace admin. If you get `PERMISSION_DENIED: User is not an account admin`, ask your account admin to run the grants — or skip this step entirely if the features are already working.
+> **Note:** Granting on the `system` catalog requires the **account admin** role, not just workspace admin. If you get `PERMISSION_DENIED: User is not an account admin`, ask your account admin to run the grants - or skip this step entirely if the features are already working.
 
 ### Step 6: Open Lattice
 
 Go to **Compute → Apps → lattice**. Once the status shows **Running**, click the app URL link next to the status badge to launch Lattice.
 
-> **First load:** The initial ingestion discovers all workspace assets and queries system tables for usage, lineage, and cost data. This typically takes **30–90 seconds** depending on workspace size. Subsequent loads are faster thanks to caching — the cached graph loads instantly while a background refresh runs.
+> **First load:** The initial ingestion discovers all workspace assets and queries system tables for usage, lineage, and cost data. This typically takes **30–90 seconds** depending on workspace size. Subsequent loads are faster thanks to caching - the cached graph loads instantly while a background refresh runs.
 
 ### Step 7: Set App Permissions
 
@@ -158,10 +157,10 @@ By default, only the app creator can access Lattice. To share it across your org
 This allows anyone in the workspace to open and use Lattice.
 
 On first launch, Lattice runs a setup wizard:
-1. **Welcome** — explains what Lattice maps
-2. **Catalog scope** — select which catalogs to include (or use all)
-3. **Workspaces** — add additional workspace profiles (optional)
-4. **System access** — pre-flight checks show which features are available
+1. **Welcome** - explains what Lattice maps
+2. **Catalog scope** - select which catalogs to include (or use all)
+3. **Workspaces** - add additional workspace profiles (optional)
+4. **System access** - pre-flight checks show which features are available
 
 You can skip the wizard and configure everything later in **Settings** (gear icon).
 
@@ -176,7 +175,7 @@ Connect Lattice to other Databricks workspaces to switch between them (e.g. dev,
 5. Enter a profile name (e.g. `production`), the workspace host URL, and paste the token
 6. Click **Test connection** to verify, then **Save**
 
-The workspace switcher appears in the sidebar once you have 2+ profiles. Click any profile to switch — Lattice re-ingests the new workspace automatically.
+The workspace switcher appears in the sidebar once you have 2+ profiles. Click any profile to switch - Lattice re-ingests the new workspace automatically.
 
 ---
 
@@ -184,7 +183,7 @@ The workspace switcher appears in the sidebar once you have 2+ profiles. Click a
 
 | Component | Description |
 |---|---|
-| `app.yaml` | Databricks App manifest — command, env vars, warehouse resource |
+| `app.yaml` | Databricks App manifest - command, env vars, warehouse resource |
 | `requirements.txt` | Python dependencies (FastAPI, uvicorn, databricks-sdk, NetworkX) |
 | `app.py` | FastAPI entry point + ingestion orchestrator |
 | `server/` | Backend: connectors, graph builder, API routes, preflight checks |
@@ -200,12 +199,12 @@ The workspace switcher appears in the sidebar once you have 2+ profiles. Click a
 
 ### app.yaml
 
-Databricks Apps automatically creates a `.venv` and installs `requirements.txt` before running the command — no `pip install` needed in the command itself.
+Databricks Apps automatically creates a `.venv` and installs `requirements.txt` before running the command - no `pip install` needed in the command itself.
 
 ```yaml
 command:
   - /bin/bash
-  - -c
+  -c
   - ".venv/bin/python3 -m uvicorn app:app --host 0.0.0.0 --port 8000"
 env:
   - name: DATABRICKS_WAREHOUSE_ID
@@ -229,7 +228,7 @@ resources:
 | `LATTICE_LINEAGE_BACKFILL_JOBS` | `500` | Max jobs backfilled from lineage |
 | `LATTICE_LINEAGE_BACKFILL_TABLES` | `2000` | Max tables backfilled from lineage |
 
-All of these can be configured in the **Settings panel** inside the app after launch — no redeploy needed. Lineage settings are under **Settings → Advanced**.
+All of these can be configured in the **Settings panel** inside the app after launch - no redeploy needed. Lineage settings are under **Settings → Advanced**.
 
 ---
 

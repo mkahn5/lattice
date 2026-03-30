@@ -136,6 +136,43 @@ def get_cost():
     return result
 
 
+@router.get("/api/scorecard")
+def get_scorecard(catalog: str | None = None, staleness_days: int = 30, top_offenders: int = 10):
+    """Workspace Governance Scorecard — computed from in-memory graph."""
+    from server.graph.scorecard import compute_scorecard
+    from server.config import load_app_config
+    cfg = load_app_config()
+    notes = cfg.get("scorecard_notes", "")
+    notes_updated_at = cfg.get("scorecard_notes_updated_at", "")
+    previous_snapshot = cfg.get("scorecard_snapshot")
+    return compute_scorecard(
+        graph_data=_graph_data,
+        cost_data=_cost_data,
+        previous_snapshot=previous_snapshot,
+        notes=notes,
+        notes_updated_at=notes_updated_at,
+        catalog_filter=catalog,
+        staleness_days=staleness_days,
+        top_offenders=top_offenders,
+    )
+
+
+class ScorecardNotesBody(BaseModel):
+    notes: str = ""
+
+
+@router.post("/api/scorecard/notes")
+def save_scorecard_notes(body: ScorecardNotesBody):
+    """Save scorecard notes. Persisted in lattice_config.json."""
+    from server.config import save_app_config
+    from datetime import datetime, timezone
+    save_app_config({
+        "scorecard_notes": body.notes,
+        "scorecard_notes_updated_at": datetime.now(timezone.utc).isoformat(),
+    })
+    return {"ok": True}
+
+
 @router.get("/api/profiles")
 def get_profiles():
     """List available profiles: primary workspace + Lattice-stored + CLI profiles."""

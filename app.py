@@ -241,6 +241,23 @@ def _run_ingestion(gen: int):
         except Exception as e:
             print(f"[lattice:{gen}] Cost attribution skipped: {e}")
 
+        # Scorecard snapshot (for delta calculation on next ingestion)
+        try:
+            from server.graph.scorecard import compute_scorecard, snapshot_for_cache
+            from server.config import load_app_config, save_app_config
+            cfg = load_app_config()
+            scorecard = compute_scorecard(
+                graph_data=data,
+                cost_data=cost if 'cost' in dir() else None,
+                previous_snapshot=cfg.get("scorecard_snapshot"),
+            )
+            if scorecard.get("available"):
+                snapshot = snapshot_for_cache(scorecard)
+                save_app_config({"scorecard_snapshot": snapshot})
+                print(f"[lattice:{gen}] Scorecard: {snapshot.get('grade', '?')} ({snapshot.get('composite', 0)})")
+        except Exception as e:
+            print(f"[lattice:{gen}] Scorecard snapshot skipped: {e}")
+
         # Merge annotations into graph so they flow through /api/nodes/{id}
         try:
             from server.api.routes import _annotation_store

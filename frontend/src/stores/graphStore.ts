@@ -42,6 +42,67 @@ export interface AppConfig {
   lineage_query_limit: number
 }
 
+export interface ScorecardDimension {
+  name: string
+  key: string
+  score: number
+  weight: number
+  weighted_contribution: number
+  available: boolean
+  detail: Record<string, unknown>
+}
+
+export interface ScorecardOffenderItem {
+  id: string
+  fqn?: string
+  name: string
+  [key: string]: unknown
+}
+
+export interface ScorecardOffenderGroup {
+  category: string
+  label: string
+  count: number
+  items: ScorecardOffenderItem[]
+}
+
+export interface ScorecardStructure {
+  observation: string
+  severity: 'warning' | 'info' | 'positive'
+  message: string
+  details: Array<Record<string, unknown>>
+}
+
+export interface ScorecardCatalog {
+  catalog_name: string
+  composite: number
+  grade: string
+  table_count: number
+}
+
+export interface ScorecardData {
+  available: boolean
+  reason?: string
+  score?: {
+    composite: number
+    grade: string
+    label: string
+    delta: number | null
+    delta_direction: string | null
+    previous_composite: number | null
+    computed_at: string
+  }
+  dimensions?: ScorecardDimension[]
+  offenders?: ScorecardOffenderGroup[]
+  workspace_structure?: ScorecardStructure[]
+  by_catalog?: ScorecardCatalog[]
+  notes?: string
+  notes_updated_at?: string
+  table_count?: number
+  compute_count?: number
+  enrichment_available: boolean
+}
+
 export interface CostNodeData {
   direct_dbu: number
   attributed_dbu: number
@@ -94,12 +155,20 @@ interface GraphStore {
   appStatus: AppStatus | null
   showWizard: boolean
   showSettings: boolean
+  showScorecard: boolean
+  scorecardData: ScorecardData | null
+  scorecardLoading: boolean
+  scorecardDisabledDims: Set<string>
 
   fetchConfig: () => Promise<void>
   saveConfig: (updates: Partial<Omit<AppConfig, 'version' | 'is_first_run'>>) => Promise<{ re_ingesting: boolean }>
   fetchStatus: () => Promise<void>
   setShowWizard: (show: boolean) => void
   setShowSettings: (show: boolean) => void
+  setShowScorecard: (show: boolean) => void
+  fetchScorecard: (catalog?: string) => Promise<void>
+  saveScorecardNotes: (notes: string) => Promise<void>
+  toggleScorecardDim: (key: string) => void
 
   // Multi-select state
   selectedNodeIds: Set<string>
@@ -166,6 +235,10 @@ export const useGraphStore = create<GraphStore>((set, get) => ({
   appStatus: null,
   showWizard: false,
   showSettings: false,
+  showScorecard: false,
+  scorecardData: null,
+  scorecardLoading: false,
+  scorecardDisabledDims: new Set(),
 
   // Multi-select initial state
   selectedNodeIds: new Set(),
@@ -185,7 +258,7 @@ export const useGraphStore = create<GraphStore>((set, get) => ({
   },
 
   refreshGraph: async () => {
-    set({ loading: true, error: null })
+    set({ loading: true, error: null, scorecardData: null })
     try {
       await fetch('/api/refresh', { method: 'POST' })
       const res = await fetch('/api/graph')
@@ -401,6 +474,34 @@ export const useGraphStore = create<GraphStore>((set, get) => ({
 
   setShowWizard: (show) => set({ showWizard: show }),
   setShowSettings: (show) => set({ showSettings: show }),
+  setShowScorecard: (show) => set({ showScorecard: show }),
+  fetchScorecard: async (catalog) => {
+    set({ scorecardLoading: true })
+    try {
+      const url = catalog ? `/api/scorecard?catalog=${encodeURIComponent(catalog)}` : '/api/scorecard'
+      const r = await fetch(url)
+      const data = await r.json()
+      set({ scorecardData: data, scorecardLoading: false })
+    } catch {
+      set({ scorecardLoading: false })
+    }
+  },
+  saveScorecardNotes: async (notes) => {
+    try {
+      await fetch('/api/scorecard/notes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notes }),
+      })
+    } catch { /* silent */ }
+  },
+  toggleScorecardDim: (key) => {
+    const prev = get().scorecardDisabledDims
+    const next = new Set(prev)
+    if (next.has(key)) next.delete(key)
+    else next.add(key)
+    set({ scorecardDisabledDims: next })
+  },
 
   // ------------------------------------------------------------------ //
   //  Multi-select actions                                                 //

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useGraphStore } from '../../stores/graphStore'
 import type { NodeType } from '../../types'
-import { Search, RefreshCw, Download, Globe, Database, ChevronDown, AlertTriangle, FileJson, HelpCircle, Tag, CheckCircle, XCircle, Loader, Settings } from 'lucide-react'
+import { Search, RefreshCw, Download, Globe, Database, ChevronDown, AlertTriangle, HelpCircle, Tag, CheckCircle, XCircle, Loader, Settings, ClipboardList } from 'lucide-react'
 import { getTagColor } from '../../constants/tagConfig'
 import { FreshnessFilter } from '../FreshnessFilter'
 import { formatDBU } from '../../utils/costColors'
@@ -856,7 +856,7 @@ function ProfileSwitcher({ onSwitching }: { onSwitching: (v: boolean) => void })
       }
       setProfiles(p => p.map(x => ({ ...x, active: x.name === profile })))
       // Clear old graph and show loading state
-      useGraphStore.setState({ nodes: [], edges: [], stats: { node_count: 0, edge_count: 0, node_types: {} }, collapsedSchemas: new Set(), selectedNodeIds: new Set(), loading: true })
+      useGraphStore.setState({ nodes: [], edges: [], stats: { node_count: 0, edge_count: 0, node_types: {} }, collapsedSchemas: new Set(), selectedNodeIds: new Set(), loading: true, scorecardData: null })
       // Try loading cached graph immediately (backend serves cache within ms)
       setTimeout(async () => {
         try { await loadGraph(); await loadInfo() } catch {}
@@ -1068,9 +1068,10 @@ function CatalogSelector({ disabled }: { disabled: boolean }) {
 }
 
 export function Sidebar() {
-  const { stats, filterTypes, searchQuery, setFilterTypes, setSearchQuery, refreshGraph, loading, viewMode, setViewMode, setShowSettings } = useGraphStore()
+  const { stats, filterTypes, searchQuery, setFilterTypes, setSearchQuery, refreshGraph, loading, viewMode, setViewMode, setShowSettings, setShowScorecard } = useGraphStore()
   const [workspaceSwitching, setWorkspaceSwitching] = useState(false)
   const [showGuide, setShowGuide] = useState(false)
+  const [showExportMenu, setShowExportMenu] = useState(false)
 
   const toggleType = (t: NodeType) => {
     const next = new Set(filterTypes)
@@ -1116,19 +1117,37 @@ export function Sidebar() {
             >
               <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
             </button>
+            <div className="relative">
+              <button
+                onClick={() => setShowExportMenu(v => !v)}
+                className="p-1.5 rounded hover:bg-gray-100 text-gray-500"
+                title="Export graph"
+              >
+                <Download size={14} />
+              </button>
+              {showExportMenu && (
+                <div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 py-1 min-w-[160px]">
+                  <button
+                    onClick={() => { handleExport(); setShowExportMenu(false) }}
+                    className="w-full text-left px-3 py-1.5 text-[12px] text-gray-600 hover:bg-gray-50"
+                  >
+                    JSON — full graph
+                  </button>
+                  <button
+                    onClick={() => { handleExportJsonLd(); setShowExportMenu(false) }}
+                    className="w-full text-left px-3 py-1.5 text-[12px] text-gray-600 hover:bg-gray-50 border-t border-gray-100"
+                  >
+                    JSON-LD — for AI agents
+                  </button>
+                </div>
+              )}
+            </div>
             <button
-              onClick={handleExport}
+              onClick={() => setShowScorecard(true)}
               className="p-1.5 rounded hover:bg-gray-100 text-gray-500"
-              title="Export JSON"
+              title="Workspace Scorecard (G)"
             >
-              <Download size={14} />
-            </button>
-            <button
-              onClick={handleExportJsonLd}
-              className="p-1.5 rounded hover:bg-gray-100 text-gray-500"
-              title="Export JSON-LD (for AI agents)"
-            >
-              <FileJson size={14} />
+              <ClipboardList size={14} />
             </button>
             <button
               onClick={() => setShowSettings(true)}

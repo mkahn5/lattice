@@ -1,4 +1,4 @@
-# Lattice — Troubleshooting Guide
+# Lattice - Troubleshooting Guide
 
 This document covers the most common issues when deploying Lattice to a new workspace.
 For installation steps, see [INSTALL.md](INSTALL.md).
@@ -18,11 +18,11 @@ For installation steps, see [INSTALL.md](INSTALL.md).
 ```yaml
 command:
   - /bin/bash
-  - -c
+  -c
   - ".venv/bin/python3 -m uvicorn app:app --host 0.0.0.0 --port 8000"
 ```
 
-Do **not** use `python3 -m uvicorn` directly — that resolves to `/usr/bin/python3` which doesn't have the installed packages.
+Do **not** use `python3 -m uvicorn` directly - that resolves to `/usr/bin/python3` which doesn't have the installed packages.
 
 ---
 
@@ -54,9 +54,9 @@ Then redeploy the app.
 | Log message | Fix |
 |---|---|
 | `No module named uvicorn` | See uvicorn fix above |
-| `No module named fastapi` | Same cause — use `.venv/bin/python3` |
+| `No module named fastapi` | Same cause - use `.venv/bin/python3` |
 | `ModuleNotFoundError` for any package | Verify `requirements.txt` is at the repo root |
-| `SyntaxError` | Python version mismatch — Lattice requires Python 3.11+ |
+| `SyntaxError` | Python version mismatch - Lattice requires Python 3.11+ |
 
 ---
 
@@ -66,15 +66,15 @@ Then redeploy the app.
 
 **Symptom:** Running `GRANT USE CATALOG ON CATALOG system TO ...` returns `PERMISSION_DENIED: User does not have MANAGE on Catalog 'system'` or `User is not an account admin for Account`.
 
-**Cause:** Granting access to the `system` catalog requires the **account admin** role — not just workspace admin. This is a Databricks platform restriction.
+**Cause:** Granting access to the `system` catalog requires the **account admin** role - not just workspace admin. This is a Databricks platform restriction.
 
 **What to do:**
 
-1. **Check if grants are even needed.** On many workspaces, the app service principal inherits system table access through the `account users` group. Launch Lattice and check **Settings → System Access** — if features show as active, you're good. Skip the grants entirely.
+1. **Check if grants are even needed.** On many workspaces, the app service principal inherits system table access through the `account users` group. Launch Lattice and check **Settings → System Access** - if features show as active, you're good. Skip the grants entirely.
 
 2. **If features show as unavailable**, ask an **account admin** to run the grants. Account admins can be found in the [Databricks account console](https://accounts.cloud.databricks.com) under **Users → Admins**.
 
-3. **If you can't find an account admin**, skip the grants. Lattice works without system table access — the canvas, topology, filtering, focus view, workspace switching, and search all work fine. Only cost overlay, heat dots, lineage edges, and orphan detection require system tables.
+3. **If you can't find an account admin**, skip the grants. Lattice works without system table access - the canvas, topology, filtering, focus view, workspace switching, and search all work fine. Only cost overlay, heat dots, lineage edges, and orphan detection require system tables.
 
 ---
 
@@ -95,9 +95,9 @@ Check **Settings → System Access** for per-check status with specific fix inst
 
 ### Check: SQL Warehouse
 
-**Symptom:** "No warehouse configured — system table checks cannot run"
+**Symptom:** "No warehouse configured - system table checks cannot run"
 
-Lattice needs a SQL warehouse to query system tables. The warehouse is configured during Databricks App setup — it injects `DATABRICKS_WAREHOUSE_ID` automatically.
+Lattice needs a SQL warehouse to query system tables. The warehouse is configured during Databricks App setup - it injects `DATABRICKS_WAREHOUSE_ID` automatically.
 
 **Fix for Databricks App:** Go to **Compute → Apps → lattice → Settings → Resources** and select a warehouse, then restart the app.
 
@@ -186,10 +186,10 @@ Lattice uses the Databricks SDK which auto-discovers credentials in this order:
 
 | Environment | How credentials work |
 |---|---|
-| **Databricks App** | Auto-injected by the platform — no config needed. Warehouse selected during app setup. |
+| **Databricks App** | Auto-injected by the platform - no config needed. Warehouse selected during app setup. |
 | **Local dev** | Set `DATABRICKS_PROFILE=<profile>` to select a CLI profile, or set `DATABRICKS_HOST` + `DATABRICKS_TOKEN` directly. |
 
-There is no in-app credential UI — credentials are always set at the environment level.
+There is no in-app credential UI - credentials are always set at the environment level.
 
 **To set up a local profile:**
 ```bash
@@ -205,7 +205,7 @@ export DATABRICKS_PROFILE=my-workspace
 
 The graph ingests in the background. A loading indicator appears at the top of the sidebar. Ingestion typically takes 30–90 seconds depending on workspace size.
 
-If it never loads, check the app logs for ingestion errors — look for `[lattice]` log lines.
+If it never loads, check the app logs for ingestion errors - look for `[lattice]` log lines.
 
 ### First-run wizard doesn't appear
 
@@ -223,24 +223,24 @@ GRANT USE CATALOG ON CATALOG <catalog_name> TO `<service-principal>`;
 
 The Databricks SDK can't authenticate. Check:
 
-1. **Databricks App:** Verify the app is deployed and running — credentials are only injected when the app is active.
+1. **Databricks App:** Verify the app is deployed and running - credentials are only injected when the app is active.
 2. **Local dev:** Run `databricks auth profiles` to confirm your profile is valid. Re-authenticate if expired.
 
 ### Changes to catalog scope don't take effect
 
-After saving new settings, Lattice triggers re-ingestion automatically. Watch for the loading indicator — the graph updates when ingestion completes (30–90s). If re-ingestion doesn't start, try **Refresh Graph** from the sidebar.
+After saving new settings, Lattice triggers re-ingestion automatically. Watch for the loading indicator - the graph updates when ingestion completes (30–90s). If re-ingestion doesn't start, try **Refresh Graph** from the sidebar.
 
 ### `[pipelines] error: Invalid pageSize: 200 not in range [1, 100]`
 
-This is a non-fatal warning in the logs — the pipelines connector requested too many results. Pipelines will still be ingested with a smaller page size. No action needed.
+This is a non-fatal warning in the logs - the pipelines connector requested too many results. Pipelines will still be ingested with a smaller page size. No action needed.
 
 ### `[shares] error: 'SharesAPI' object has no attribute 'list'`
 
-This is a non-fatal warning — the workspace may not have Delta Sharing enabled, or the SDK version doesn't support the shares API. Share and Recipient nodes will be skipped. No action needed.
+This is a non-fatal warning - the workspace may not have Delta Sharing enabled, or the SDK version doesn't support the shares API. Share and Recipient nodes will be skipped. No action needed.
 
 ### `[annotations] WARNING: Could not initialize annotation store`
 
-The annotations feature (tags and notes on assets) requires a SQL warehouse and CREATE TABLE permissions on the annotations catalog. This is optional — all other features work without it.
+The annotations feature (tags and notes on assets) requires a SQL warehouse and CREATE TABLE permissions on the annotations catalog. This is optional - all other features work without it.
 
 ---
 
